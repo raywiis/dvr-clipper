@@ -1,4 +1,14 @@
 {
   "name": "fpv-clipper",
-  "packageManager": "yarn@4.9.1"
+  "packageManager": "yarn@4.9.1",
+  "scripts": {
+    "setup": "sdks vscode"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "dependencies": {
+    "@yarnpkg/sdks": "^3.2.3",
+    "typescript": "^6.0.3"
+  }
 }

@@ -1,0 +1,19 @@
+{
+  "name": "@fpv-clipper/web",
+  "packageManager": "yarn@4.9.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite src",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
+    "mp4box": "^2.3.0"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3",
+    "vite": "^8.0.13"
+  }
+}
