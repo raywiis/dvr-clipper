@@ -1,6 +1,5 @@
 import { getAviSamples } from "./decode/avi";
 import { decodeFrame, type DecodedFrame, type Sample } from "./decode/mjpeg";
-// import { getMovSamples } from "./decode/mov";
 
 async function getSamples(file: File): Promise<Sample[]> {
   // Sniff the container from the first bytes instead of trusting the extension.
