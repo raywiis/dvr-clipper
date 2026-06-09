@@ -1,6 +1,6 @@
 import { getAviSamples } from "./decode/avi";
 import { decodeFrame, type DecodedFrame, type Sample } from "./decode/mjpeg";
-import { getMovSamples } from "./decode/mov";
+// import { getMovSamples } from "./decode/mov";
 
 async function getSamples(file: File): Promise<Sample[]> {
   // Sniff the container from the first bytes instead of trusting the extension.
@@ -10,7 +10,10 @@ async function getSamples(file: File): Promise<Sample[]> {
     head.getUint8(offset), head.getUint8(offset + 1), head.getUint8(offset + 2), head.getUint8(offset + 3),
   );
   if (tag(0) === 'RIFF' && tag(8) === 'AVI ') return getAviSamples(file);
-  if (['ftyp', 'moov', 'mdat', 'free', 'wide', 'skip'].includes(tag(4))) return getMovSamples(file);
+  if (['ftyp', 'moov', 'mdat', 'free', 'wide', 'skip'].includes(tag(4))) {
+    const {getMovSamples} = await import('./decode/mov');
+    return getMovSamples(file);
+  }
   throw new Error('Unrecognized container: expected an AVI or MOV/MP4 file');
 }
 
