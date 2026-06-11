@@ -3,7 +3,7 @@ import { type AllRegisteredBoxes } from 'mp4box';
 import { assert } from '../assert';
 import type { Sample } from './mjpeg';
 
-export async function getMovSamples(file: File): Promise<Sample[]> {
+export async function getMovSamples(file: File, onProgress: (percent: number) => void): Promise<Sample[]> {
   const mp4boxFile = mp4box.createFile();
   const stream = file.stream();
   const valueIterator = stream.values();
@@ -19,6 +19,7 @@ export async function getMovSamples(file: File): Promise<Sample[]> {
   mp4boxFile.start();
   while (true) {
     const iterationResult = await valueIterator.next();
+    onProgress(totalOffset/file.size);
     if (iterationResult.done) {
       mp4boxFile.flush();
       moovBox = mp4boxFile.moov;

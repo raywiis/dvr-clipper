@@ -7,7 +7,7 @@ export type PlayerElements = {
   timeLabel: HTMLElement;
 };
 
-function formatTime(seconds: number): string {
+export function formatTime(seconds: number): string {
   const total = Math.max(0, Math.floor(seconds));
   const mins = Math.floor(total / 60);
   const secs = total % 60;
@@ -53,9 +53,12 @@ export async function createPlayer(els: PlayerElements, file: File, samples: Sam
     busy = false;
   }
 
-  scrub.addEventListener('input', () => {
+  // Assignment, not addEventListener: loading a different file re-runs
+  // createPlayer, and we want the new closure to replace the old handler
+  // rather than stack another listener on the shared scrub element.
+  scrub.oninput = () => {
     const index = Number(scrub.value);
     timeLabel.textContent = `${formatTime(samples[index]!.time)} / ${formatTime(duration)}`;
     seekTo(index);
-  });
+  };
 }

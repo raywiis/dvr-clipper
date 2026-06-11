@@ -59,6 +59,84 @@ body {
   cursor: pointer;
 }
 
+.filelist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filelist[hidden] {
+  display: none;
+}
+
+.filelist-item {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-size: 14px;
+}
+
+.filelist-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: calc(var(--progress, 0) * 100%);
+  background: #eef2ff;
+  transition: width 0.25s ease;
+  z-index: 0;
+}
+
+.filelist-item.is-ready {
+  cursor: pointer;
+}
+
+.filelist-item.is-ready::before {
+  background: #e8f7ee;
+}
+
+.filelist-item.is-error::before {
+  background: #fdecec;
+}
+
+.filelist-item.is-active {
+  border-color: var(--accent);
+}
+
+.filelist-name,
+.filelist-status {
+  position: relative;
+  z-index: 1;
+}
+
+.filelist-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filelist-status {
+  flex-shrink: 0;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.filelist-item.is-error .filelist-status {
+  color: #d64545;
+}
+
 .player {
   display: flex;
   flex-direction: column;
