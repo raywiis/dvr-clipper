@@ -1,3 +1,4 @@
+import { assert } from '../assert';
 import type { Sample } from './mjpeg';
 
 // Minimal RIFF/AVI demuxer for MJPEG DVR files. Reads only chunk headers, the
@@ -18,9 +19,7 @@ const MJPEG_FOURCCS = new Set(['MJPG', 'mjpg', 'dmb1', 'AVI1']);
 
 async function readBytes(file: File, offset: number, length: number): Promise<DataView> {
   const buf = await file.slice(offset, offset + length).arrayBuffer();
-  if (buf.byteLength < length) {
-    throw new Error(`AVI: unexpected end of file reading ${length} bytes at offset ${offset}`);
-  }
+  assert(buf.byteLength >= length, `AVI: unexpected end of file reading ${length} bytes at offset ${offset}`);
   return new DataView(buf);
 }
 
@@ -74,9 +73,7 @@ type StreamInfo = {
 /** Parses one LIST('strl') — the per-stream 'strh' header plus 'strf' format. */
 function parseStrl(hdrl: DataView, start: number, end: number): StreamInfo {
   end = Math.min(end, hdrl.byteLength);
-  if (start + 44 > end || fourcc(hdrl, start) !== 'strh') {
-    throw new Error('AVI: malformed strl list (missing strh)');
-  }
+  assert(start + 44 <= end && fourcc(hdrl, start) === 'strh', 'AVI: malformed strl list (missing strh)');
   const strhSize = hdrl.getUint32(start + 4, true);
   const strh = start + 8;
   const info: StreamInfo = {
@@ -112,7 +109,7 @@ function parseHdrl(hdrl: DataView): VideoStream {
     } else if (id === 'LIST' && pos + 12 <= hdrl.byteLength && fourcc(hdrl, pos + 8) === 'strl') {
       const info = parseStrl(hdrl, pos + 12, pos + 8 + size);
       if (info.type === 'vids') {
-        if (video) throw new Error('AVI: multiple video streams found');
+        assert(!video, 'AVI: multiple video streams found');
         video = { index: streamCount, info };
       }
       streamCount++;
@@ -120,13 +117,11 @@ function parseHdrl(hdrl: DataView): VideoStream {
     pos += chunkSpan(size);
   }
 
-  if (!video) throw new Error('AVI: no video stream found');
+  assert(video, 'AVI: no video stream found');
   const { codec, scale, rate, length } = video.info;
-  if (!MJPEG_FOURCCS.has(codec)) {
-    throw new Error(`AVI: unsupported video codec '${codec || 'unknown'}', only MJPEG is supported`);
-  }
+  assert(MJPEG_FOURCCS.has(codec), `AVI: unsupported video codec '${codec || 'unknown'}', only MJPEG is supported`);
   const frameDuration = rate > 0 && scale > 0 ? scale / rate : microSecPerFrame / 1e6;
-  if (!(frameDuration > 0)) throw new Error('AVI: invalid frame rate in stream header');
+  assert(frameDuration > 0, 'AVI: invalid frame rate in stream header');
 
   return {
     chunkPrefix: String(video.index).padStart(2, '0'),
@@ -195,9 +190,7 @@ async function samplesFromMoviScan(file: File, movi: { start: number; end: numbe
 
 export async function getAviSamples(file: File): Promise<Sample[]> {
   const riff = await readBytes(file, 0, 12);
-  if (fourcc(riff, 0) !== 'RIFF' || fourcc(riff, 8) !== 'AVI ') {
-    throw new Error('AVI: missing RIFF/AVI signature');
-  }
+  assert(fourcc(riff, 0) === 'RIFF' && fourcc(riff, 8) === 'AVI ', 'AVI: missing RIFF/AVI signature');
   const riffSize = riff.getUint32(4, true);
   if (8 + riffSize > file.size) {
     console.warn('AVI: RIFF size exceeds file size, file looks truncated');
@@ -225,23 +218,21 @@ export async function getAviSamples(file: File): Promise<Sample[]> {
     pos += chunkSpan(chunk.size);
   }
 
-  if (!video) throw new Error('AVI: no hdrl header list found');
-  if (!movi) throw new Error('AVI: no movi list found');
+  assert(video, 'AVI: no hdrl header list found');
+  assert(movi, 'AVI: no movi list found');
 
   const samples = idx1
     ? await samplesFromIndex(file, idx1, movi.start, video)
     : await samplesFromMoviScan(file, movi, video);
 
-  if (samples.length === 0) throw new Error('AVI: no video frames found');
+  assert(samples.length > 0, 'AVI: no video frames found');
   if (video.frameCount && Math.abs(samples.length - video.frameCount) > video.frameCount * 0.05) {
     console.warn(`AVI: header declares ${video.frameCount} frames but found ${samples.length}`);
   }
 
   // Frames must be JPEGs for the shared MJPEG decode path.
   const soi = await readBytes(file, samples[0]!.offset, 2);
-  if (soi.getUint16(0) !== 0xffd8) {
-    throw new Error('AVI: first frame is not a JPEG (missing SOI marker)');
-  }
+  assert(soi.getUint16(0) === 0xffd8, 'AVI: first frame is not a JPEG (missing SOI marker)');
 
   return samples;
 }
