@@ -1,3 +1,5 @@
+import styles from './fileList.module.css';
+
 export type FileRow = {
   setProgress(fraction: number): void;
   setStatus(text: string): void;
@@ -12,19 +14,20 @@ export function renderFileList(
   onSelect: (file: File, index: number) => void,
 ): FileRow[] {
   container.replaceChildren();
+  container.classList.add(styles.list!);
   container.hidden = files.length === 0;
 
   return files.map((file, index) => {
     const item = document.createElement('li');
-    item.className = 'filelist-item';
+    item.className = styles.item!;
     item.style.setProperty('--progress', '0');
 
     const name = document.createElement('span');
-    name.className = 'filelist-name';
+    name.className = styles.name!;
     name.textContent = file.name;
 
     const status = document.createElement('span');
-    status.className = 'filelist-status';
+    status.className = styles.status!;
     status.textContent = 'Queued';
 
     item.append(name, status);
@@ -44,16 +47,16 @@ export function renderFileList(
       },
       setReady(text) {
         setProgress(1);
-        item.classList.add('is-ready');
+        item.classList.add(styles.isReady!);
         status.textContent = text ?? 'Ready';
       },
       setError(message) {
         setProgress(1);
-        item.classList.add('is-error');
+        item.classList.add(styles.isError!);
         status.textContent = message;
       },
       setActive(active) {
-        item.classList.toggle('is-active', active);
+        item.classList.toggle(styles.isActive!, active);
       },
     };
   });
