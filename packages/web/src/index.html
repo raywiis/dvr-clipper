@@ -8,9 +8,13 @@
 </head>
 <body>
 
-  <div class="timeline">
+  <div class="player">
+    <canvas></canvas>
+    <div class="timeline">
+      <input type="range" class="timeline-scrub" min="0" max="0" step="any" value="0" disabled>
+      <span class="timeline-time">0:00 / 0:00</span>
+    </div>
   </div>
-  <canvas></canvas>
 
   <div class="dropzone">
     <div>Drop your DVR footage here</div>

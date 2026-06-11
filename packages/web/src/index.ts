@@ -8,10 +8,19 @@ if (!(fileInput instanceof HTMLInputElement)) {
 const errorLabel = document.getElementById('dropzone-error');
 if (!errorLabel) throw new Error('No dropzone error element');
 
+const player = document.querySelector<HTMLElement>('.player');
+if (!player) throw new Error('No .player element');
+
 const canvas = document.querySelector('canvas');
 if (!canvas) throw new Error('No <canvas> element');
 const ctx = canvas.getContext('2d');
 if (!ctx) throw new Error('No 2D canvas context');
+
+const scrub = document.querySelector<HTMLInputElement>('.timeline-scrub');
+if (!scrub) throw new Error('No .timeline-scrub input');
+
+const timeLabel = document.querySelector<HTMLElement>('.timeline-time');
+if (!timeLabel) throw new Error('No .timeline-time element');
 
 async function handleFiles(files: FileList) {
   const file = files[0];
@@ -25,7 +34,7 @@ async function handleFiles(files: FileList) {
     // TODO: Analyze all the videos
     // TODO: Nice preview UI
     // TODO: Join multiple files into a single one if the goggles cut something
-    await showVideo(canvas!, ctx!, file);
+    await showVideo({ canvas: canvas!, ctx: ctx!, scrub: scrub!, timeLabel: timeLabel! }, file);
   } catch (err) {
     errorLabel!.textContent = err instanceof Error ? err.message : String(err);
   }
