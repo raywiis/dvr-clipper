@@ -1,49 +1,39 @@
 import { showVideo } from './showVideo';
 
-const fileInput = document.getElementsByName('dropzone').item(0);
-if (!fileInput) throw new Error('No file input named dropzone');
+const fileInput = document.querySelector('.dropzone input[type="file"]');
 if (!(fileInput instanceof HTMLInputElement)) {
-  throw new Error('Input is not for files');
+  throw new Error('No file input inside dropzone');
 }
+
+const errorLabel = document.getElementById('dropzone-error');
+if (!errorLabel) throw new Error('No dropzone error element');
 
 const canvas = document.querySelector('canvas');
 if (!canvas) throw new Error('No <canvas> element');
 const ctx = canvas.getContext('2d');
 if (!ctx) throw new Error('No 2D canvas context');
 
+async function handleFiles(files: FileList) {
+  const file = files[0];
+  if (!file) {
+    errorLabel!.textContent = 'No files found in dropped input';
+    return;
+  }
 
-const handleFiles = (files: FileList) => {
-  for (let i = 0; i < files.length; i++) {
-    const droppedFile = files[i];
-    if (!droppedFile) {
-      alert('no files found in dropped input');
-      return;
-    }
-
+  errorLabel!.textContent = '';
+  try {
     // TODO: Analyze all the videos
     // TODO: Nice preview UI
     // TODO: Join multiple files into a single one if the goggles cut something
-    showVideo(canvas, ctx, droppedFile);
-    return;
+    await showVideo(canvas!, ctx!, file);
+  } catch (err) {
+    errorLabel!.textContent = err instanceof Error ? err.message : String(err);
   }
 }
 
-fileInput.addEventListener('drop', (dropEvent) => {
-  if (!dropEvent.dataTransfer) {
-    return;
-  }
-  handleFiles(dropEvent.dataTransfer.files);
-})
-
-fileInput.addEventListener('input', (inputEvent) => {
-  console.log('input', inputEvent);
+// The input covers the dropzone, so the browser handles click and drop natively.
+fileInput.addEventListener('input', () => {
   if (fileInput.files) {
-    handleFiles(fileInput.files)
-    return;
+    handleFiles(fileInput.files);
   }
-  if (inputEvent.dataTransfer) {
-    handleFiles(inputEvent.dataTransfer.files);
-    return;
-  }
-})
-
+});

@@ -1,0 +1,60 @@
+:root {
+  --accent: #4f7cff;
+  --border: #d3d8e0;
+  --text: #3a4150;
+  --muted: #8a93a3;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  box-sizing: border-box;
+  font-family: sans-serif;
+  color: var(--text);
+  background: #f6f7f9;
+  padding: 12px;
+}
+
+.dropzone {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 48px 32px;
+  border-radius: 16px;
+  border: 2px dashed var(--border);
+  background: #fff;
+  text-align: center;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.dropzone:hover,
+.dropzone:focus-within {
+  border-color: var(--accent);
+  background: #fafbff;
+}
+
+.dropzone-hint {
+  margin-top: 6px;
+  color: var(--muted);
+}
+
+.dropzone-error {
+  display: block;
+  margin-top: 12px;
+  font-size: 13px;
+  color: #d64545;
+  min-height: 1em;
+}
+
+.dropzone input[type='file'] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}

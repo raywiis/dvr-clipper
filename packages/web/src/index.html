@@ -4,20 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FPV Clipper</title>
-  <style>
-    input[type='file'] {
-      height: 100px;
-      background-color: red;
-    }
-  </style>
+  <link rel="stylesheet" href="./index.css">
 </head>
 <body>
-  <form>
-    <input type="file" name="dropzone" multiple>
-  </form>
-  <section>
-    <canvas></canvas>
-  </section>
+
+  <div class="timeline">
+  </div>
+  <canvas></canvas>
+
+  <div class="dropzone">
+    <div>Drop your DVR footage here</div>
+    <div class="dropzone-hint">or click to browse &middot; .avi, .mov, .mp4</div>
+    <div class="dropzone-error" id="dropzone-error"></div>
+    <input type="file" name="dropzone" accept=".avi,.mov,.mp4,video/*" multiple>
+  </div>
 
   <script src="./index.ts" type="module"></script>
 </body>
