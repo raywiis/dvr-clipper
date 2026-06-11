@@ -9,7 +9,10 @@
 <body>
 
   <div class="player">
-    <canvas></canvas>
+    <div class="stage">
+      <canvas></canvas>
+      <svg class="timeline-noise" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" hidden></svg>
+    </div>
     <div class="timeline">
       <input type="range" class="timeline-scrub" min="0" max="0" step="any" value="0" disabled>
       <span class="timeline-time">0:00 / 0:00</span>

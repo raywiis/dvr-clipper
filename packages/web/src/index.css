@@ -71,7 +71,14 @@ body {
   display: none;
 }
 
+.stage {
+  position: relative;
+  width: 100%;
+  line-height: 0;
+}
+
 .player canvas {
+  display: block;
   width: 100%;
   height: auto;
   border-radius: 12px;
@@ -80,12 +87,30 @@ body {
 
 .timeline {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Noise heatmap overlaid along the bottom edge of the video. */
+.timeline-noise {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 28px;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.timeline-noise[hidden] {
+  display: none;
 }
 
 .timeline-scrub {
-  flex: 1;
+  width: 100%;
+  margin: 0;
   accent-color: var(--accent);
   cursor: pointer;
 }
@@ -95,6 +120,7 @@ body {
 }
 
 .timeline-time {
+  align-self: center;
   font-size: 13px;
   color: var(--muted);
   font-variant-numeric: tabular-nums;

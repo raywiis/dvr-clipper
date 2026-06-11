@@ -1,10 +1,13 @@
+import { type NoisePoint } from "./analyze";
 import { decodeFrame, type Sample } from "./decode/mjpeg";
+import { renderNoiseChart } from "./noiseChart";
 
 export type PlayerElements = {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   scrub: HTMLInputElement;
   timeLabel: HTMLElement;
+  noise: SVGElement;
 };
 
 export function formatTime(seconds: number): string {
@@ -14,8 +17,10 @@ export function formatTime(seconds: number): string {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-export async function createPlayer(els: PlayerElements, file: File, samples: Sample[]) {
+export async function createPlayer(els: PlayerElements, file: File, samples: Sample[], noise: NoisePoint[]) {
   const { canvas, ctx, scrub, timeLabel } = els;
+
+  renderNoiseChart(els.noise, noise);
 
   const first = await decodeFrame(file, samples[0]!);
   canvas.width = first.bitmap.width;

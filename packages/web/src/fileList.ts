@@ -1,3 +1,5 @@
+import { type NoisePoint } from './analyze';
+import { createNoiseChart, renderNoiseChart } from './noiseChart';
 import styles from './fileList.module.css';
 
 export type FileRow = {
@@ -6,6 +8,7 @@ export type FileRow = {
   setReady(text?: string): void;
   setError(message: string): void;
   setActive(active: boolean): void;
+  setNoise(points: NoisePoint[]): void;
 };
 
 export function renderFileList(
@@ -22,6 +25,9 @@ export function renderFileList(
     item.className = styles.item!;
     item.style.setProperty('--progress', '0');
 
+    const header = document.createElement('div');
+    header.className = styles.header!;
+
     const name = document.createElement('span');
     name.className = styles.name!;
     name.textContent = file.name;
@@ -30,7 +36,11 @@ export function renderFileList(
     status.className = styles.status!;
     status.textContent = 'Queued';
 
-    item.append(name, status);
+    header.append(name, status);
+
+    const chart = createNoiseChart();
+
+    item.append(header, chart);
     container.append(item);
 
     item.addEventListener('click', () => onSelect(file, index));
@@ -57,6 +67,9 @@ export function renderFileList(
       },
       setActive(active) {
         item.classList.toggle(styles.isActive!, active);
+      },
+      setNoise(points) {
+        renderNoiseChart(chart, points);
       },
     };
   });
