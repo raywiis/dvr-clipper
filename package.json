@@ -2,6 +2,7 @@
   "name": "fpv-clipper",
   "packageManager": "yarn@4.9.1",
   "scripts": {
+    "build": "yarn workspaces foreach -Wt run build",
     "setup": "sdks vscode"
   },
   "workspaces": [
