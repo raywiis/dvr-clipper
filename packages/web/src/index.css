@@ -91,6 +91,55 @@ body {
   gap: 6px;
 }
 
+.timeline-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.play-button {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.play-button:hover:not(:disabled) {
+  background: #3a66e0;
+}
+
+.play-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.play-button svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.play-button .icon-pause {
+  display: none;
+}
+
+.play-button.playing .icon-play {
+  display: none;
+}
+
+.play-button.playing .icon-pause {
+  display: inline;
+}
+
 /* Noise heatmap overlaid along the bottom edge of the video. */
 .timeline-noise {
   position: absolute;
@@ -109,7 +158,8 @@ body {
 }
 
 .timeline-scrub {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   margin: 0;
   accent-color: var(--accent);
   cursor: pointer;

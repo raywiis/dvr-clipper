@@ -8,6 +8,7 @@ export type PlayerElements = {
   scrub: HTMLInputElement;
   timeLabel: HTMLElement;
   noise: SVGElement;
+  playButton: HTMLButtonElement;
 };
 
 export function formatTime(seconds: number): string {
@@ -17,9 +18,14 @@ export function formatTime(seconds: number): string {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-export async function createPlayer(els: PlayerElements, file: File, samples: Sample[], noise: NoisePoint[]) {
-  const { canvas, ctx, scrub, timeLabel } = els;
+// Stops playback from a previously loaded file: createPlayer re-runs per file
+// but they share one canvas/scrub, so a stale rAF loop would keep drawing.
+let stopActivePlayback: (() => void) | null = null;
 
+export async function createPlayer(els: PlayerElements, file: File, samples: Sample[], noise: NoisePoint[]) {
+  const { canvas, ctx, scrub, timeLabel, playButton } = els;
+
+  stopActivePlayback?.();
   renderNoiseChart(els.noise, noise);
 
   const first = await decodeFrame(file, samples[0]!);
@@ -58,12 +64,83 @@ export async function createPlayer(els: PlayerElements, file: File, samples: Sam
     busy = false;
   }
 
+  /** Largest sample index whose presentation time is <= t (binary search). */
+  function indexAtTime(t: number): number {
+    if (t <= samples[0]!.time) return 0;
+    if (t >= samples[lastFrame]!.time) return lastFrame;
+    let lo = 0;
+    let hi = lastFrame;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if (samples[mid]!.time <= t) lo = mid;
+      else hi = mid - 1;
+    }
+    return lo;
+  }
+
+  function showFrame(index: number) {
+    scrub.value = String(index);
+    timeLabel.textContent = `${formatTime(samples[index]!.time)} / ${formatTime(duration)}`;
+    seekTo(index);
+  }
+
+  // Playback advances by wall-clock time against the samples' own timestamps, so
+  // it tracks the clip's real frame rate and drops frames if decoding lags.
+  let playing = false;
+  let rafId = 0;
+  let anchorWall = 0; // performance.now() when playback (re)started
+  let anchorTime = 0; // clip time at that moment
+
+  function updateButton() {
+    playButton.classList.toggle('playing', playing);
+    playButton.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+  }
+
+  function tick() {
+    if (!playing) return;
+    const elapsed = anchorTime + (performance.now() - anchorWall) / 1000;
+    showFrame(indexAtTime(elapsed));
+    if (elapsed >= duration) {
+      pause();
+      return;
+    }
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function play() {
+    if (playing) return;
+    // Restart from the beginning if we're parked at the end.
+    const startIndex = Number(scrub.value) >= lastFrame ? 0 : Number(scrub.value);
+    anchorTime = samples[startIndex]!.time;
+    anchorWall = performance.now();
+    playing = true;
+    updateButton();
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function pause() {
+    if (!playing) return;
+    playing = false;
+    cancelAnimationFrame(rafId);
+    updateButton();
+  }
+
+  stopActivePlayback = pause;
+
+  playButton.disabled = false;
+  playing = false;
+  updateButton();
+
+  playButton.onclick = () => (playing ? pause() : play());
+
   // Assignment, not addEventListener: loading a different file re-runs
   // createPlayer, and we want the new closure to replace the old handler
   // rather than stack another listener on the shared scrub element.
   scrub.oninput = () => {
     const index = Number(scrub.value);
-    timeLabel.textContent = `${formatTime(samples[index]!.time)} / ${formatTime(duration)}`;
-    seekTo(index);
+    // Re-anchor so playback continues smoothly from where the user dragged.
+    anchorTime = samples[index]!.time;
+    anchorWall = performance.now();
+    showFrame(index);
   };
 }

@@ -13,11 +13,12 @@ const canvas = select('canvas', HTMLCanvasElement);
 const scrub = select('.timeline-scrub', HTMLInputElement);
 const timeLabel = select('.timeline-time', HTMLElement);
 const noiseChart = select('.timeline-noise', SVGElement);
+const playButton = select('.play-button', HTMLButtonElement);
 const listEl = select('.filelist', HTMLUListElement);
 
 const ctx = canvas.getContext('2d');
 assert(ctx, 'No canvas context');
-const player = { canvas, ctx, scrub, timeLabel, noise: noiseChart };
+const player = { canvas, ctx, scrub, timeLabel, noise: noiseChart, playButton };
 
 async function handleFiles(fileList: FileList) {
   const files = [...fileList];
@@ -58,14 +59,7 @@ async function handleFiles(fileList: FileList) {
       }
 
       row.setStatus('Analyzing…');
-      let drawn = 0;
-      const noise = await analyzeNoise(file, samples, (progress, points) => {
-        row.setProgress(progress * 0.45 + 0.55);
-        if (active === file && points.length - drawn >= 16) {
-          drawn = points.length;
-          renderNoiseChart(noiseChart, points, duration);
-        }
-      });
+      const noise = await analyzeNoise(file, samples, (progress) => row.setProgress(progress * 0.45 + 0.55));
       noiseByFile.set(file, noise);
       row.setNoise(noise);
       if (active === file) renderNoiseChart(noiseChart, noise, duration);
