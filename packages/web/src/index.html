@@ -1,20 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FPV Clipper</title>
   <link rel="stylesheet" href="./index.css">
 </head>
+
 <body>
 
   <div class="player">
     <div class="stage">
       <canvas></canvas>
-      <svg class="timeline-noise" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" hidden></svg>
     </div>
     <div class="timeline">
-      <div class="timeline-controls">
+      <svg class="timeline-noise" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" hidden></svg>
+      <div>
+        <input type="range" class="timeline-scrub" min="0" max="0" step="any" value="0" disabled>
+      </div>
+      <div>
         <button type="button" class="play-button" aria-label="Play" disabled>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path class="icon-play" d="M8 5v14l11-7z"></path>
@@ -22,9 +27,8 @@
             <rect class="icon-pause" x="14" y="5" width="4" height="14"></rect>
           </svg>
         </button>
-        <input type="range" class="timeline-scrub" min="0" max="0" step="any" value="0" disabled>
+        <span class="timeline-time">0:00 / 0:00</span>
       </div>
-      <span class="timeline-time">0:00 / 0:00</span>
     </div>
   </div>
 
@@ -39,4 +43,5 @@
 
   <script src="./index.ts" type="module"></script>
 </body>
+
 </html>
