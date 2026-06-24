@@ -70,9 +70,9 @@ async function handleFiles(newFiles: FileList) {
     try {
       row.setStatus('Reading…');
       row.setProgress(0.1);
-      const samples = await getSamples(file, (progress) => row.setProgress(progress * 0.45 + 0.1));
+      const knownSamples = state.fileSamples.get(file);
+      const samples = knownSamples ?? await getSamples(file, (progress) => row.setProgress(progress * 0.45 + 0.1));
       state.fileSamples.set(file, samples);
-
       const duration = samples[samples.length - 1]?.time ?? 0;
 
       // Show the first readable file right away; the per-frame analysis below is
