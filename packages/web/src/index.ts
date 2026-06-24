@@ -7,7 +7,7 @@ import { getSamples } from './getSamples';
 import { PlayButton } from './ui/player/playButton';
 import { registerCustomElements } from './ui/register';
 import { NoiseChart } from './ui/NoiseChart/NoiseChart';
-import { AppState } from './appState';
+import { AppFileStatusChangeEvent, AppState } from './appState';
 
 registerCustomElements();
 
@@ -41,7 +41,7 @@ async function handleFiles(newFiles: FileList) {
   const noiseByFile = new Map<File, NoisePoint[]>();
   let active: File | null = null;
 
-  const rows = renderFileList(listEl, files, (file) => {
+  const rows = renderFileList(listEl, state, files, (file) => {
     const samples = state.fileSamples.get(file);
     if (!samples) return; // still reading or failed
     active = file;
@@ -52,7 +52,7 @@ async function handleFiles(newFiles: FileList) {
   for (const [index, file] of files.entries()) {
     const row = rows[index]!;
     try {
-      row.setStatus('Reading…');
+      state.eventTarget.dispatchEvent(new AppFileStatusChangeEvent('Reading', file));
       row.setProgress(0.1);
       const knownSamples = state.fileSamples.get(file);
       const samples = knownSamples ?? await getSamples(file, (progress) => row.setProgress(progress * 0.45 + 0.1));
@@ -67,7 +67,7 @@ async function handleFiles(newFiles: FileList) {
         await createPlayer(player, file, samples, []);
       }
 
-      row.setStatus('Analyzing…');
+      state.eventTarget.dispatchEvent(new AppFileStatusChangeEvent('Analyzing', file));
       const noise = await analyzeNoise(file, samples, (progress) => row.setProgress(progress * 0.45 + 0.55));
       noiseByFile.set(file, noise);
       row.setNoise(noise);

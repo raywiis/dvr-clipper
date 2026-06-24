@@ -1,10 +1,10 @@
 import { type NoisePoint } from './analyze';
+import type { AppState } from './appState';
 import styles from './fileList.module.css';
 import { NoiseChart } from './ui/NoiseChart/NoiseChart';
 
 export type FileRow = {
   setProgress(fraction: number): void;
-  setStatus(text: string): void;
   setReady(text?: string): void;
   setError(message: string): void;
   setActive(active: boolean): void;
@@ -13,6 +13,7 @@ export type FileRow = {
 
 export function renderFileList(
   container: HTMLUListElement,
+  appState: AppState,
   files: File[],
   onSelect: (file: File, index: number) => void,
 ): FileRow[] {
@@ -50,11 +51,15 @@ export function renderFileList(
       item.style.setProperty('--progress', String(clamped));
     };
 
+    appState.addEventListener('file:statusChange', (event) => {
+      if (event.file !== file) {
+        return;
+      }
+      status.textContent = event.status;
+    })
+
     return {
       setProgress,
-      setStatus(text) {
-        status.textContent = text;
-      },
       setReady(text) {
         setProgress(1);
         item.classList.add(styles.isReady!);

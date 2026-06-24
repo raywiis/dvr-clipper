@@ -1,7 +1,5 @@
 import type { Sample } from "./decode/mjpeg";
 
-type AppStateEventType = 'addFile';
-
 class AppAddFileEvent extends Event {
   addedFile: File;
 
@@ -11,9 +9,27 @@ class AppAddFileEvent extends Event {
   }
 }
 
-export type AppStateEvent = AppAddFileEvent;
+export class AppFileStatusChangeEvent extends Event {
+  public file: File;
+  status: string;
 
-export type AppStateEventListener<T extends AppStateEventType> = T extends 'addFile' ? (event: AppAddFileEvent) => void : never;
+  constructor(status: string, file: File) {
+    super('file:statusChange');
+    this.status = status;
+    this.file = file;
+  }
+}
+
+const eventMap = {
+  'addFile': AppAddFileEvent,
+  'file:statusChange': AppFileStatusChangeEvent,
+} as const
+
+type AppStateEventType = keyof typeof eventMap;
+
+export type AppStateEvent<T extends AppStateEventType> = InstanceType<(typeof eventMap)[T]>;
+
+export type AppStateEventListener<T extends AppStateEventType> = (event: AppStateEvent<T>) => void;
 
 export class AppState {
   eventTarget = new EventTarget();
@@ -25,6 +41,7 @@ export class AppState {
       return;
     }
     this.files.push(file);
+    this.eventTarget.dispatchEvent(new AppFileStatusChangeEvent('Queued', file))
   }
 
   hasFile(file: File) {
