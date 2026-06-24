@@ -24,8 +24,17 @@ const ctx = canvas.getContext('2d');
 assert(ctx, 'No canvas context');
 const player = { canvas, ctx, scrub, timeLabel, noise: noiseChart, playButton };
 
-async function handleFiles(fileList: FileList) {
-  const files = [...fileList];
+const allFiles : File[] = [];
+
+async function handleFiles(newFiles: FileList) {
+  for (const newFile of newFiles) {
+    if (allFiles.some(existingFile => existingFile.name === newFile.name))  {
+      continue;
+    }
+    allFiles.push(newFile);
+  }
+
+  const files = [...allFiles];
   if (files.length === 0) {
     errorLabel.textContent = 'No files found in dropped input';
     return;
