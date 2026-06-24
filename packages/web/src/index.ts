@@ -24,29 +24,41 @@ const ctx = canvas.getContext('2d');
 assert(ctx, 'No canvas context');
 const player = { canvas, ctx, scrub, timeLabel, noise: noiseChart, playButton };
 
-const allFiles : File[] = [];
+class AppState {
+  files: File[] = []
+  fileSamples: Map<File, Sample[]> = new Map();
 
-async function handleFiles(newFiles: FileList) {
-  for (const newFile of newFiles) {
-    if (allFiles.some(existingFile => existingFile.name === newFile.name))  {
-      continue;
+  addFile(file: File) {
+    if (this.hasFile(file)) {
+      return;
     }
-    allFiles.push(newFile);
+    this.files.push(file);
   }
 
-  const files = [...allFiles];
+  hasFile(file: File) {
+    return this.files.some(existingFile => existingFile.name === file.name);
+  }
+}
+
+const state = new AppState();
+
+async function handleFiles(newFiles: FileList) {
+  for (const file of newFiles) {
+    state.addFile(file);
+  }
+
+  const files = [...state.files];
   if (files.length === 0) {
     errorLabel.textContent = 'No files found in dropped input';
     return;
   }
   errorLabel.textContent = '';
 
-  const decoded = new Map<File, Sample[]>();
   const noiseByFile = new Map<File, NoisePoint[]>();
   let active: File | null = null;
 
   const rows = renderFileList(listEl, files, (file) => {
-    const samples = decoded.get(file);
+    const samples = state.fileSamples.get(file);
     if (!samples) return; // still reading or failed
     active = file;
     rows.forEach((row, i) => row.setActive(files[i] === file));
@@ -59,7 +71,7 @@ async function handleFiles(newFiles: FileList) {
       row.setStatus('Reading…');
       row.setProgress(0.1);
       const samples = await getSamples(file, (progress) => row.setProgress(progress * 0.45 + 0.1));
-      decoded.set(file, samples);
+      state.fileSamples.set(file, samples);
 
       const duration = samples[samples.length - 1]?.time ?? 0;
 
