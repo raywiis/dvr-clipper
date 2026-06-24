@@ -108,21 +108,6 @@ body {
   transition: background 0.15s ease, opacity 0.15s ease;
 }
 
-.play-button:hover:not(:disabled) {
-  background: #3a66e0;
-}
-
-.play-button:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-.play-button svg {
-  width: 20px;
-  height: 20px;
-  fill: currentColor;
-}
-
 /* Noise heatmap overlaid along the bottom edge of the video. */
 .timeline-noise {
   width: 100%;
