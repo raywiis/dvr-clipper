@@ -1,13 +1,13 @@
 import { analyzeNoise, NOISE_THRESHOLD, type NoisePoint } from './analyze';
 import { assert } from './assert';
 import { select } from './dom';
-import { type Sample } from './decode/mjpeg';
 import { createPlayer, formatTime } from './player';
 import { renderFileList } from './fileList';
 import { getSamples } from './getSamples';
 import { PlayButton } from './ui/player/playButton';
 import { registerCustomElements } from './ui/register';
 import { NoiseChart } from './ui/NoiseChart/NoiseChart';
+import { AppState } from './appState';
 
 registerCustomElements();
 
@@ -23,22 +23,6 @@ const listEl = select('.filelist', HTMLUListElement);
 const ctx = canvas.getContext('2d');
 assert(ctx, 'No canvas context');
 const player = { canvas, ctx, scrub, timeLabel, noise: noiseChart, playButton };
-
-class AppState {
-  files: File[] = []
-  fileSamples: Map<File, Sample[]> = new Map();
-
-  addFile(file: File) {
-    if (this.hasFile(file)) {
-      return;
-    }
-    this.files.push(file);
-  }
-
-  hasFile(file: File) {
-    return this.files.some(existingFile => existingFile.name === file.name);
-  }
-}
 
 const state = new AppState();
 
