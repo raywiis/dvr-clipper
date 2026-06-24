@@ -1,6 +1,6 @@
 import { type NoisePoint } from './analyze';
-import { createNoiseChart, renderNoiseChart } from './noiseChart';
 import styles from './fileList.module.css';
+import { NoiseChart } from './components/NoiseChart/NoiseChart';
 
 export type FileRow = {
   setProgress(fraction: number): void;
@@ -38,7 +38,7 @@ export function renderFileList(
 
     header.append(name, status);
 
-    const chart = createNoiseChart();
+    const chart = new NoiseChart();
 
     item.append(header, chart);
     container.append(item);
@@ -69,7 +69,7 @@ export function renderFileList(
         item.classList.toggle(styles.isActive!, active);
       },
       setNoise(points) {
-        renderNoiseChart(chart, points);
+        chart.setNoisePoints(points);
       },
     };
   });

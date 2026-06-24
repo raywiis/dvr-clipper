@@ -1,14 +1,14 @@
 import { type NoisePoint } from "./analyze";
+import type { NoiseChart } from "./components/NoiseChart/NoiseChart";
 import type { PlayButton } from "./components/player/playButton";
 import { decodeFrame, type Sample } from "./decode/mjpeg";
-import { renderNoiseChart } from "./noiseChart";
 
 export type PlayerElements = {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   scrub: HTMLInputElement;
   timeLabel: HTMLElement;
-  noise: SVGElement;
+  noise: NoiseChart;
   playButton: PlayButton;
 };
 
@@ -27,7 +27,7 @@ export async function createPlayer(els: PlayerElements, file: File, samples: Sam
   const { canvas, ctx, scrub, timeLabel, playButton } = els;
 
   stopActivePlayback?.();
-  renderNoiseChart(els.noise, noise);
+  els.noise.setNoisePoints(noise);
 
   const first = await decodeFrame(file, samples[0]!);
   canvas.width = first.bitmap.width;

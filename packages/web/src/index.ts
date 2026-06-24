@@ -4,10 +4,10 @@ import { select } from './dom';
 import { type Sample } from './decode/mjpeg';
 import { createPlayer, formatTime } from './player';
 import { renderFileList } from './fileList';
-import { renderNoiseChart } from './noiseChart';
 import { getSamples } from './showVideo';
 import { PlayButton } from './components/player/playButton';
 import { registerCustomElements } from './components/register';
+import { NoiseChart } from './components/NoiseChart/NoiseChart';
 
 registerCustomElements();
 
@@ -16,7 +16,7 @@ const errorLabel = select('#dropzone-error', HTMLElement);
 const canvas = select('canvas', HTMLCanvasElement);
 const scrub = select('.timeline-scrub', HTMLInputElement);
 const timeLabel = select('.timeline-time', HTMLElement);
-const noiseChart = select('.timeline-noise', SVGElement);
+const noiseChart = select('.timeline-noise', NoiseChart);
 const playButton = select('.play-button', PlayButton);
 const listEl = select('.filelist', HTMLUListElement);
 
@@ -87,7 +87,7 @@ async function handleFiles(newFiles: FileList) {
       const noise = await analyzeNoise(file, samples, (progress) => row.setProgress(progress * 0.45 + 0.55));
       noiseByFile.set(file, noise);
       row.setNoise(noise);
-      if (active === file) renderNoiseChart(noiseChart, noise, duration);
+      if (active === file) noiseChart.setNoisePoints(noise);
 
       const noisyFrames = noise.filter((point) => point.score >= NOISE_THRESHOLD).length;
       const staticPct = noise.length ? Math.round((noisyFrames / noise.length) * 100) : 0;

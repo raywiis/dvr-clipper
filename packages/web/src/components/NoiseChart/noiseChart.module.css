@@ -23,6 +23,6 @@
 .threshold {
   stroke: #d64545;
   stroke-width: 1;
-  stroke-dasharray: 3 3;
+  stroke-dasharray: 1 1;
   opacity: 0.5;
 }
