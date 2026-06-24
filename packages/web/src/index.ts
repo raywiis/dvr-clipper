@@ -4,7 +4,7 @@ import { select } from './dom';
 import { type Sample } from './decode/mjpeg';
 import { createPlayer, formatTime } from './player';
 import { renderFileList } from './fileList';
-import { getSamples } from './showVideo';
+import { getSamples } from './getSamples';
 import { PlayButton } from './components/player/playButton';
 import { registerCustomElements } from './components/register';
 import { NoiseChart } from './components/NoiseChart/NoiseChart';
