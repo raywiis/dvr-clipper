@@ -6,6 +6,10 @@ import { createPlayer, formatTime } from './player';
 import { renderFileList } from './fileList';
 import { renderNoiseChart } from './noiseChart';
 import { getSamples } from './showVideo';
+import { PlayButton } from './components/player/playButton';
+import { registerCustomElements } from './components/register';
+
+registerCustomElements();
 
 const fileInput = select('.dropzone input[type="file"]', HTMLInputElement);
 const errorLabel = select('#dropzone-error', HTMLElement);
@@ -13,7 +17,7 @@ const canvas = select('canvas', HTMLCanvasElement);
 const scrub = select('.timeline-scrub', HTMLInputElement);
 const timeLabel = select('.timeline-time', HTMLElement);
 const noiseChart = select('.timeline-noise', SVGElement);
-const playButton = select('.play-button', HTMLButtonElement);
+const playButton = select('.play-button', PlayButton);
 const listEl = select('.filelist', HTMLUListElement);
 
 const ctx = canvas.getContext('2d');
