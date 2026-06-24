@@ -1,6 +1,6 @@
 import { type NoisePoint } from './analyze';
 import styles from './fileList.module.css';
-import { NoiseChart } from './components/NoiseChart/NoiseChart';
+import { NoiseChart } from './ui/NoiseChart/NoiseChart';
 
 export type FileRow = {
   setProgress(fraction: number): void;

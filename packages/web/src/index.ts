@@ -5,9 +5,9 @@ import { type Sample } from './decode/mjpeg';
 import { createPlayer, formatTime } from './player';
 import { renderFileList } from './fileList';
 import { getSamples } from './getSamples';
-import { PlayButton } from './components/player/playButton';
-import { registerCustomElements } from './components/register';
-import { NoiseChart } from './components/NoiseChart/NoiseChart';
+import { PlayButton } from './ui/player/playButton';
+import { registerCustomElements } from './ui/register';
+import { NoiseChart } from './ui/NoiseChart/NoiseChart';
 
 registerCustomElements();
 
