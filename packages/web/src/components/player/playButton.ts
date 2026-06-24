@@ -1,32 +1,49 @@
 
+const playIconSvg = /*html*/`
+<svg viewBox="0 0 24 24">
+  <path class="icon-play" d="M8 5v14l11-7z"></path>
+</svg>
+`
+
+const pauseIconSvg = `
+<svg viewBox="0 0 24 24">
+  <rect class="icon-pause" x="6" y="5" width="4" height="14"></rect>
+  <rect class="icon-pause" x="14" y="5" width="4" height="14"></rect>
+</svg>
+`
+
+const PAUSED_ATTRIBUTE = 'paused'
+
 export class PlayButton extends HTMLButtonElement {
+  static observedAttributes = [PAUSED_ATTRIBUTE]
   constructor() {
     super();
   }
 
-  // <button type="button" class="play-button" disabled>
-  //   <svg viewBox="0 0 24 24" aria-hidden="true">
-  //     <path class="icon-play" d="M8 5v14l11-7z"></path>
-  //     <rect class="icon-pause" x="6" y="5" width="4" height="14"></rect>
-  //     <rect class="icon-pause" x="14" y="5" width="4" height="14"></rect>
-  //   </svg>
-  // </button>
-
   connectedCallback() {
-    console.log('connected')
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('viewBox', '0 0 24 24');
+    this.render()
+  }
 
-    const playPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    playPath.classList.add('icon-play');
-    playPath.setAttribute('d', 'M8 5v14l11-7z');
+  attributeChangedCallback(name: string) {
+    if (name === PAUSED_ATTRIBUTE) {
+      this.render();
+    }
+  }
 
-    // const pauseRect1 = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    // pauseRect1.classList.add('icon-pause');
-    // pauseRect1.setAttribute('')
+  play() {
+    this.removeAttribute(PAUSED_ATTRIBUTE);
+  }
 
-    svg.appendChild(playPath);
+  pause() {
+    this.setAttribute(PAUSED_ATTRIBUTE, '');
+  }
 
-    this.appendChild(svg);
+  private render() {
+    const pausedAttributeValue = this.getAttribute(PAUSED_ATTRIBUTE);
+    if (pausedAttributeValue === null) {
+      this.innerHTML = pauseIconSvg;
+    } else {
+      this.innerHTML = playIconSvg;
+    }
   }
 }

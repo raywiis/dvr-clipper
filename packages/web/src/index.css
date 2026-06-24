@@ -123,18 +123,6 @@ body {
   fill: currentColor;
 }
 
-.play-button .icon-pause {
-  display: none;
-}
-
-.play-button.playing .icon-play {
-  display: none;
-}
-
-.play-button.playing .icon-pause {
-  display: inline;
-}
-
 /* Noise heatmap overlaid along the bottom edge of the video. */
 .timeline-noise {
   width: 100%;

@@ -1,4 +1,5 @@
 import { type NoisePoint } from "./analyze";
+import type { PlayButton } from "./components/player/playButton";
 import { decodeFrame, type Sample } from "./decode/mjpeg";
 import { renderNoiseChart } from "./noiseChart";
 
@@ -8,7 +9,7 @@ export type PlayerElements = {
   scrub: HTMLInputElement;
   timeLabel: HTMLElement;
   noise: SVGElement;
-  playButton: HTMLButtonElement;
+  playButton: PlayButton;
 };
 
 export function formatTime(seconds: number): string {
@@ -91,11 +92,6 @@ export async function createPlayer(els: PlayerElements, file: File, samples: Sam
   let anchorWall = 0; // performance.now() when playback (re)started
   let anchorTime = 0; // clip time at that moment
 
-  function updateButton() {
-    playButton.classList.toggle('playing', playing);
-    playButton.setAttribute('aria-label', playing ? 'Pause' : 'Play');
-  }
-
   function tick() {
     if (!playing) return;
     const elapsed = anchorTime + (performance.now() - anchorWall) / 1000;
@@ -114,7 +110,7 @@ export async function createPlayer(els: PlayerElements, file: File, samples: Sam
     anchorTime = samples[startIndex]!.time;
     anchorWall = performance.now();
     playing = true;
-    updateButton();
+    playButton.play();
     rafId = requestAnimationFrame(tick);
   }
 
@@ -122,14 +118,13 @@ export async function createPlayer(els: PlayerElements, file: File, samples: Sam
     if (!playing) return;
     playing = false;
     cancelAnimationFrame(rafId);
-    updateButton();
+    playButton.pause()
   }
 
   stopActivePlayback = pause;
 
-  playButton.disabled = false;
   playing = false;
-  updateButton();
+  playButton.pause();
 
   playButton.onclick = () => (playing ? pause() : play());
 
