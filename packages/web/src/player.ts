@@ -1,6 +1,6 @@
 import { type NoisePoint } from "./analyze";
 import type { NoiseChart } from "./ui/NoiseChart/NoiseChart";
-import type { PlayButton } from "./ui/player/playButton";
+import type { PlayButton } from "./ui/player/PlayButton";
 import { decodeFrame, type Sample } from "./decode/mjpeg";
 
 export type PlayerElements = {

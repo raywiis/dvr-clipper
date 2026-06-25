@@ -4,7 +4,7 @@ import { select } from './dom';
 import { createPlayer, formatTime } from './player';
 import { renderFileList } from './fileList';
 import { getSamples } from './getSamples';
-import { PlayButton } from './ui/player/playButton';
+import { PlayButton } from './ui/player/PlayButton';
 import { registerCustomElements } from './ui/register';
 import { NoiseChart } from './ui/NoiseChart/NoiseChart';
 import { AppFileStatusChangeEvent, AppState } from './appState';
