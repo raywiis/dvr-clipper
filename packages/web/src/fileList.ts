@@ -1,6 +1,7 @@
-import { type NoisePoint } from './analyze';
+import { NOISE_THRESHOLD, type NoisePoint } from './analyze';
 import type { AppState } from './appState';
 import styles from './fileList.module.css';
+import { formatTime } from './player';
 import { NoiseChart } from './ui/NoiseChart/NoiseChart';
 
 export type FileRow = {
@@ -8,7 +9,6 @@ export type FileRow = {
   setReady(text?: string): void;
   setError(message: string): void;
   setActive(active: boolean): void;
-  setNoise(points: NoisePoint[]): void;
 };
 
 export function renderFileList(
@@ -56,6 +56,24 @@ export function renderFileList(
         return;
       }
       status.textContent = event.status;
+    });
+
+    appState.addEventListener('file:noise:added', (event) => {
+      if (event.file !== file) {
+        return;
+      }
+      const noise = event.noisePoints;
+      chart.setNoisePoints(event.noisePoints);
+      const noisyFrames = noise.filter((point) => point.score >= NOISE_THRESHOLD).length;
+      const staticPct = noise.length ? Math.round((noisyFrames / noise.length) * 100) : 0;
+      const samples = appState.fileSamples.get(file);
+      if (!samples) {
+        return;
+      }
+      const duration = samples[samples.length - 1]?.time ?? 0;
+      setProgress(1);
+      item.classList.add(styles.isReady!);
+      status.textContent = `${staticPct}% static · ${formatTime(duration)} · ${samples.length} frames`;
     })
 
     return {
@@ -72,9 +90,6 @@ export function renderFileList(
       },
       setActive(active) {
         item.classList.toggle(styles.isActive!, active);
-      },
-      setNoise(points) {
-        chart.setNoisePoints(points);
       },
     };
   });

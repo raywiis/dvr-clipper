@@ -1,3 +1,4 @@
+import type { NoisePoint } from "./analyze";
 import type { Sample } from "./decode/mjpeg";
 
 class AppAddFileEvent extends Event {
@@ -20,9 +21,21 @@ export class AppFileStatusChangeEvent extends Event {
   }
 }
 
+export class AppFileNoiseAddedEvent extends Event {
+  noisePoints: NoisePoint[];
+  file: File;
+
+  constructor(noisePoints: NoisePoint[], file: File){
+    super('file:noise:added');
+    this.file = file;
+    this.noisePoints = noisePoints;
+  }
+}
+
 const eventMap = {
   'addFile': AppAddFileEvent,
   'file:statusChange': AppFileStatusChangeEvent,
+  'file:noise:added': AppFileNoiseAddedEvent,
 } as const
 
 type AppStateEventType = keyof typeof eventMap;

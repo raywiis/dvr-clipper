@@ -7,7 +7,7 @@ import { getSamples } from './getSamples';
 import { PlayButton } from './ui/player/PlayButton';
 import { registerCustomElements } from './ui/register';
 import { NoiseChart } from './ui/NoiseChart/NoiseChart';
-import { AppFileStatusChangeEvent, AppState } from './appState';
+import { AppFileNoiseAddedEvent, AppFileStatusChangeEvent, AppState } from './appState';
 
 registerCustomElements();
 
@@ -57,7 +57,6 @@ async function handleFiles(newFiles: FileList) {
       const knownSamples = state.fileSamples.get(file);
       const samples = knownSamples ?? await getSamples(file, (progress) => row.setProgress(progress * 0.45 + 0.1));
       state.fileSamples.set(file, samples);
-      const duration = samples[samples.length - 1]?.time ?? 0;
 
       // Show the first readable file right away; the per-frame analysis below is
       // slower and runs after the video is on screen, filling in the overlay.
@@ -68,14 +67,10 @@ async function handleFiles(newFiles: FileList) {
       }
 
       state.eventTarget.dispatchEvent(new AppFileStatusChangeEvent('Analyzing', file));
+
       const noise = await analyzeNoise(file, samples, (progress) => row.setProgress(progress * 0.45 + 0.55));
       noiseByFile.set(file, noise);
-      row.setNoise(noise);
-      if (active === file) noiseChart.setNoisePoints(noise);
-
-      const noisyFrames = noise.filter((point) => point.score >= NOISE_THRESHOLD).length;
-      const staticPct = noise.length ? Math.round((noisyFrames / noise.length) * 100) : 0;
-      row.setReady(`${staticPct}% static · ${formatTime(duration)} · ${samples.length} frames`);
+      state.eventTarget.dispatchEvent(new AppFileNoiseAddedEvent(noise, file));
     } catch (err) {
       row.setError(err instanceof Error ? err.message : String(err));
     }
