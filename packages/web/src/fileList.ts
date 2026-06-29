@@ -6,7 +6,6 @@ import { NoiseChart } from './ui/NoiseChart/NoiseChart';
 
 export type FileRow = {
   setProgress(fraction: number): void;
-  setReady(text?: string): void;
   setError(message: string): void;
   setActive(active: boolean): void;
 };
@@ -78,11 +77,6 @@ export function renderFileList(
 
     return {
       setProgress,
-      setReady(text) {
-        setProgress(1);
-        item.classList.add(styles.isReady!);
-        status.textContent = text ?? 'Ready';
-      },
       setError(message) {
         setProgress(1);
         item.classList.add(styles.isError!);
