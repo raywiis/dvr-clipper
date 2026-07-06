@@ -92,7 +92,7 @@ body {
   gap: 6px;
 }
 
-.play-button {
+play-button {
   flex-shrink: 0;
   display: flex;
   align-items: center;
