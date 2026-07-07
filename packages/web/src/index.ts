@@ -1,13 +1,11 @@
-import { analyzeNoise, NOISE_THRESHOLD, type NoisePoint } from './analyze';
 import { assert } from './assert';
 import { select } from './dom';
-import { createPlayer, formatTime } from './player';
+import { createPlayer } from './player';
 import { renderFileList } from './fileList';
-import { getSamples } from './getSamples';
 import { PlayButton } from './ui/player/PlayButton';
 import { registerCustomElements } from './ui/register';
 import { NoiseChart } from './ui/NoiseChart/NoiseChart';
-import { AppFileErrorEvent, AppFileNoiseAddedEvent, AppFileProgressEvent, AppFileStatusChangeEvent, AppState } from './appState';
+import { AppState } from './appState';
 
 registerCustomElements();
 
@@ -37,53 +35,14 @@ async function handleFiles(newFiles: FileList) {
     return;
   }
   errorLabel.textContent = '';
-
-  const noiseByFile = new Map<File, NoisePoint[]>();
-  let active: File | null = null;
-
-  const rows = renderFileList(listEl, state, files, (file) => {
-    const samples = state.fileSamples.get(file);
-    if (!samples) return; // still reading or failed
-    active = file;
-    rows.forEach((row, i) => row.setActive(files[i] === file));
-    createPlayer(player, file, samples, noiseByFile.get(file) ?? []);
-  });
-
-  for (const [index, file] of files.entries()) {
-    const row = rows[index]!;
-    try {
-      state.eventTarget.dispatchEvent(new AppFileStatusChangeEvent('Reading', file));
-      state.eventTarget.dispatchEvent(
-        new AppFileProgressEvent(0.1, file)
-      )
-      const knownSamples = state.fileSamples.get(file);
-      const samples = knownSamples ?? await getSamples(file, (progress) => state.eventTarget.dispatchEvent(
-        new AppFileProgressEvent(progress * 0.45 + 0.1, file)
-      ));
-      state.fileSamples.set(file, samples);
-
-      // Show the first readable file right away; the per-frame analysis below is
-      // slower and runs after the video is on screen, filling in the overlay.
-      if (!active) {
-        active = file;
-        row.setActive(true);
-        await createPlayer(player, file, samples, []);
-      }
-
-      state.eventTarget.dispatchEvent(new AppFileStatusChangeEvent('Analyzing', file));
-
-      const noise = await analyzeNoise(file, samples, (progress) => state.eventTarget.dispatchEvent(new AppFileProgressEvent(progress * 0.45 + 0.55, file)));
-      noiseByFile.set(file, noise);
-      state.eventTarget.dispatchEvent(new AppFileNoiseAddedEvent(noise, file));
-    } catch (err) {
-      state.eventTarget.dispatchEvent(new AppFileErrorEvent(err instanceof Error ? err.message : String(err), file))
-    }
-  }
-
-  if (!active) {
-    errorLabel.textContent = 'None of the dropped files could be read';
-  }
 }
+
+renderFileList(listEl, state, (file) => {
+  const samples = state.fileSamples.get(file);
+  if (!samples) return;
+  const noise = state.fileNoise.get(file) ?? [];
+  createPlayer(player, file, samples, noise);
+});
 
 fileInput.addEventListener('input', () => {
   if (fileInput.files) {

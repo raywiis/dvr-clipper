@@ -1,5 +1,6 @@
-import type { NoisePoint } from "./analyze";
+import { analyzeNoise, type NoisePoint } from "./analyze";
 import type { Sample } from "./decode/mjpeg";
+import { getSamples } from './getSamples';
 
 class AppAddFileEvent extends Event {
   addedFile: File;
@@ -25,7 +26,7 @@ export class AppFileNoiseAddedEvent extends Event {
   noisePoints: NoisePoint[];
   file: File;
 
-  constructor(noisePoints: NoisePoint[], file: File){
+  constructor(noisePoints: NoisePoint[], file: File) {
     super('file:noise:added');
     this.file = file;
     this.noisePoints = noisePoints;
@@ -72,13 +73,16 @@ export class AppState {
   eventTarget = new EventTarget();
   files: File[] = []
   fileSamples: Map<File, Sample[]> = new Map();
+  fileNoise: Map<File, NoisePoint[]> = new Map();
 
   addFile(file: File) {
     if (this.hasFile(file)) {
       return;
     }
     this.files.push(file);
+    this.eventTarget.dispatchEvent(new AppAddFileEvent(file));
     this.eventTarget.dispatchEvent(new AppFileStatusChangeEvent('Queued', file))
+    this.#processFile(file);
   }
 
   hasFile(file: File) {
@@ -88,5 +92,24 @@ export class AppState {
   addEventListener<T extends AppStateEventType>(eventType: T, eventListener: AppStateEventListener<T>) {
     // @ts-expect-error
     this.eventTarget.addEventListener(eventType, eventListener);
+  }
+
+  async #processFile(file: File) {
+    this.eventTarget.dispatchEvent(new AppFileStatusChangeEvent('Reading', file));
+
+    try {
+      this.eventTarget.dispatchEvent(new AppFileProgressEvent(0.1, file));
+      const samples = await getSamples(file, (progress) => this.eventTarget.dispatchEvent(
+        new AppFileProgressEvent(progress * 0.45 + 0.1, file)
+      ));
+      this.fileSamples.set(file, samples);
+
+      this.eventTarget.dispatchEvent(new AppFileStatusChangeEvent('Analyzing', file));
+      const noise = await analyzeNoise(file, samples, (progress) => this.eventTarget.dispatchEvent(new AppFileProgressEvent(progress * 0.45 + 0.55, file)));
+      this.fileNoise.set(file, noise);
+      this.eventTarget.dispatchEvent(new AppFileNoiseAddedEvent(noise, file));
+    } catch (err) {
+      this.eventTarget.dispatchEvent(new AppFileErrorEvent(err instanceof Error ? err.message : String(err), file))
+    }
   }
 }
