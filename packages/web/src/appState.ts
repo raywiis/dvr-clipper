@@ -32,6 +32,17 @@ export class AppFileNoiseAddedEvent extends Event {
   }
 }
 
+export class AppFileProgressEvent extends Event {
+  progress: number;
+  file: File;
+
+  constructor(progress: number, file: File) {
+    super('file:progress');
+    this.progress = progress;
+    this.file = file;
+  }
+}
+
 export class AppFileErrorEvent extends Event {
   message: string;
   file: File;
@@ -47,6 +58,7 @@ const eventMap = {
   'addFile': AppAddFileEvent,
   'file:statusChange': AppFileStatusChangeEvent,
   'file:noise:added': AppFileNoiseAddedEvent,
+  'file:progress': AppFileProgressEvent,
   'file:error': AppFileErrorEvent,
 } as const
 

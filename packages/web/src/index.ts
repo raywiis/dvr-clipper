@@ -7,7 +7,7 @@ import { getSamples } from './getSamples';
 import { PlayButton } from './ui/player/PlayButton';
 import { registerCustomElements } from './ui/register';
 import { NoiseChart } from './ui/NoiseChart/NoiseChart';
-import { AppFileErrorEvent, AppFileNoiseAddedEvent, AppFileStatusChangeEvent, AppState } from './appState';
+import { AppFileErrorEvent, AppFileNoiseAddedEvent, AppFileProgressEvent, AppFileStatusChangeEvent, AppState } from './appState';
 
 registerCustomElements();
 
@@ -53,9 +53,13 @@ async function handleFiles(newFiles: FileList) {
     const row = rows[index]!;
     try {
       state.eventTarget.dispatchEvent(new AppFileStatusChangeEvent('Reading', file));
-      row.setProgress(0.1);
+      state.eventTarget.dispatchEvent(
+        new AppFileProgressEvent(0.1, file)
+      )
       const knownSamples = state.fileSamples.get(file);
-      const samples = knownSamples ?? await getSamples(file, (progress) => row.setProgress(progress * 0.45 + 0.1));
+      const samples = knownSamples ?? await getSamples(file, (progress) => state.eventTarget.dispatchEvent(
+        new AppFileProgressEvent(progress * 0.45 + 0.1, file)
+      ));
       state.fileSamples.set(file, samples);
 
       // Show the first readable file right away; the per-frame analysis below is
@@ -68,7 +72,7 @@ async function handleFiles(newFiles: FileList) {
 
       state.eventTarget.dispatchEvent(new AppFileStatusChangeEvent('Analyzing', file));
 
-      const noise = await analyzeNoise(file, samples, (progress) => row.setProgress(progress * 0.45 + 0.55));
+      const noise = await analyzeNoise(file, samples, (progress) => state.eventTarget.dispatchEvent(new AppFileProgressEvent(progress * 0.45 + 0.55, file)));
       noiseByFile.set(file, noise);
       state.eventTarget.dispatchEvent(new AppFileNoiseAddedEvent(noise, file));
     } catch (err) {

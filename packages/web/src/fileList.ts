@@ -5,7 +5,6 @@ import { formatTime } from './player';
 import { NoiseChart } from './ui/NoiseChart/NoiseChart';
 
 export type FileRow = {
-  setProgress(fraction: number): void;
   setActive(active: boolean): void;
 };
 
@@ -74,6 +73,13 @@ export function renderFileList(
       status.textContent = `${staticPct}% static · ${formatTime(duration)} · ${samples.length} frames`;
     })
 
+    appState.addEventListener('file:progress', event => {
+      if (event.file !== file) {
+        return;
+      }
+      setProgress(event.progress);
+    })
+
     appState.addEventListener('file:error', (event) => {
       if (event.file !== file) {
         return;
@@ -84,7 +90,6 @@ export function renderFileList(
     })
 
     return {
-      setProgress,
       setActive(active) {
         item.classList.toggle(styles.isActive!, active);
       },
