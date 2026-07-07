@@ -32,10 +32,22 @@ export class AppFileNoiseAddedEvent extends Event {
   }
 }
 
+export class AppFileErrorEvent extends Event {
+  message: string;
+  file: File;
+
+  constructor(message: string, file: File) {
+    super('file:error');
+    this.file = file;
+    this.message = message;
+  }
+}
+
 const eventMap = {
   'addFile': AppAddFileEvent,
   'file:statusChange': AppFileStatusChangeEvent,
   'file:noise:added': AppFileNoiseAddedEvent,
+  'file:error': AppFileErrorEvent,
 } as const
 
 type AppStateEventType = keyof typeof eventMap;

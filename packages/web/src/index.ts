@@ -7,7 +7,7 @@ import { getSamples } from './getSamples';
 import { PlayButton } from './ui/player/PlayButton';
 import { registerCustomElements } from './ui/register';
 import { NoiseChart } from './ui/NoiseChart/NoiseChart';
-import { AppFileNoiseAddedEvent, AppFileStatusChangeEvent, AppState } from './appState';
+import { AppFileErrorEvent, AppFileNoiseAddedEvent, AppFileStatusChangeEvent, AppState } from './appState';
 
 registerCustomElements();
 
@@ -72,7 +72,7 @@ async function handleFiles(newFiles: FileList) {
       noiseByFile.set(file, noise);
       state.eventTarget.dispatchEvent(new AppFileNoiseAddedEvent(noise, file));
     } catch (err) {
-      row.setError(err instanceof Error ? err.message : String(err));
+      state.eventTarget.dispatchEvent(new AppFileErrorEvent(err instanceof Error ? err.message : String(err), file))
     }
   }
 
