@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "typecheck": "tsc",
+    "format": "prettier --write .",
     "test:setup": "./reference/synthetic/rebuild.sh",
     "preview": "vite preview",
     "storybook": "storybook dev --no-open",
@@ -17,6 +19,7 @@
   },
   "devDependencies": {
     "@storybook/html-vite": "^10.4.6",
+    "prettier": "^3.8.4",
     "storybook": "^10.4.6",
     "typescript": "^6.0.3",
     "vite": "^8.0.13"

@@ -1,5 +1,5 @@
-import { assert } from './assert';
-import { decodeFrame, type Sample } from './decode/mjpeg';
+import { assert } from "./assert";
+import { decodeFrame, type Sample } from "./decode/mjpeg";
 
 export type NoisePoint = {
   /** Presentation time of the sampled frame, in seconds */
@@ -34,15 +34,16 @@ export async function analyzeNoise(
   if (samples.length === 0) return [];
 
   const canvas = new OffscreenCanvas(TARGET_WIDTH, TARGET_WIDTH);
-  const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  assert(ctx, 'No offscreen canvas context for noise analysis');
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  assert(ctx, "No offscreen canvas context for noise analysis");
 
   const count = Math.min(MAX_FRAMES, samples.length);
 
   const points: NoisePoint[] = [];
 
   for (let i = 0; i < count; i++) {
-    const index = count === 1 ? 0 : Math.round((i / (count - 1)) * (samples.length - 1));
+    const index =
+      count === 1 ? 0 : Math.round((i / (count - 1)) * (samples.length - 1));
     const { bitmap, time } = await decodeFrame(file, samples[index]!);
     points.push({ time, score: scoreFrame(ctx, canvas, bitmap) });
     bitmap.close();
@@ -64,7 +65,10 @@ function scoreFrame(
   bitmap: ImageBitmap,
 ): number {
   const w = TARGET_WIDTH;
-  const h = Math.max(1, Math.round((bitmap.height / bitmap.width) * TARGET_WIDTH));
+  const h = Math.max(
+    1,
+    Math.round((bitmap.height / bitmap.width) * TARGET_WIDTH),
+  );
   if (canvas.height !== h) canvas.height = h;
   ctx.drawImage(bitmap, 0, 0, w, h);
   const { data } = ctx.getImageData(0, 0, w, h);
@@ -73,7 +77,10 @@ function scoreFrame(
   const luma = new Float32Array(n);
   let sum = 0;
   for (let i = 0; i < n; i++) {
-    const y = 0.299 * data[i * 4]! + 0.587 * data[i * 4 + 1]! + 0.114 * data[i * 4 + 2]!;
+    const y =
+      0.299 * data[i * 4]! +
+      0.587 * data[i * 4 + 1]! +
+      0.114 * data[i * 4 + 2]!;
     luma[i] = y;
     sum += y;
   }

@@ -23,12 +23,12 @@ export const Interactive: Story = {
   play: async ({ canvasElement }) => {
     const btn = canvasElement?.getElementsByTagName("play-button").item(0);
     if (!btn || !(btn instanceof PlayButton)) return;
-    btn.addEventListener('click', () => {
-      if (btn.hasAttribute('paused')) {
+    btn.addEventListener("click", () => {
+      if (btn.hasAttribute("paused")) {
         btn.play();
       } else {
-        btn.pause()
+        btn.pause();
       }
-    })
+    });
   },
 };

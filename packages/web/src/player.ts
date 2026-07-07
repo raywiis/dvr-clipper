@@ -16,14 +16,19 @@ export function formatTime(seconds: number): string {
   const total = Math.max(0, Math.floor(seconds));
   const mins = Math.floor(total / 60);
   const secs = total % 60;
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
 // Stops playback from a previously loaded file: createPlayer re-runs per file
 // but they share one canvas/scrub, so a stale rAF loop would keep drawing.
 let stopActivePlayback: (() => void) | null = null;
 
-export async function createPlayer(els: PlayerElements, file: File, samples: Sample[], noise: NoisePoint[]) {
+export async function createPlayer(
+  els: PlayerElements,
+  file: File,
+  samples: Sample[],
+  noise: NoisePoint[],
+) {
   const { canvas, ctx, scrub, timeLabel, playButton } = els;
 
   stopActivePlayback?.();
@@ -38,10 +43,10 @@ export async function createPlayer(els: PlayerElements, file: File, samples: Sam
   const lastFrame = samples.length - 1;
   const duration = samples[lastFrame]!.time;
 
-  scrub.min = '0';
+  scrub.min = "0";
   scrub.max = String(lastFrame);
-  scrub.step = '1';
-  scrub.value = '0';
+  scrub.step = "1";
+  scrub.value = "0";
   scrub.disabled = false;
   timeLabel.textContent = `${formatTime(0)} / ${formatTime(duration)}`;
 
@@ -106,7 +111,8 @@ export async function createPlayer(els: PlayerElements, file: File, samples: Sam
   function play() {
     if (playing) return;
     // Restart from the beginning if we're parked at the end.
-    const startIndex = Number(scrub.value) >= lastFrame ? 0 : Number(scrub.value);
+    const startIndex =
+      Number(scrub.value) >= lastFrame ? 0 : Number(scrub.value);
     anchorTime = samples[startIndex]!.time;
     anchorWall = performance.now();
     playing = true;
@@ -118,7 +124,7 @@ export async function createPlayer(els: PlayerElements, file: File, samples: Sam
     if (!playing) return;
     playing = false;
     cancelAnimationFrame(rafId);
-    playButton.pause()
+    playButton.pause();
   }
 
   stopActivePlayback = pause;

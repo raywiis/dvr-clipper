@@ -28,7 +28,9 @@ body {
   border: 2px dashed var(--border);
   background: #fff;
   text-align: center;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
 }
 
 .dropzone:hover,
@@ -50,7 +52,7 @@ body {
   min-height: 1em;
 }
 
-.dropzone input[type='file'] {
+.dropzone input[type="file"] {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -105,7 +107,9 @@ play-button {
   background: var(--accent);
   color: #fff;
   cursor: pointer;
-  transition: background 0.15s ease, opacity 0.15s ease;
+  transition:
+    background 0.15s ease,
+    opacity 0.15s ease;
 }
 
 /* Noise heatmap overlaid along the bottom edge of the video. */

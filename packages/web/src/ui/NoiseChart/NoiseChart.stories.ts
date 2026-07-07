@@ -31,7 +31,9 @@ export const Empty: Story = {
 export const WithData: Story = {
   render: () => "<noise-chart></noise-chart>",
   play: async ({ canvasElement }) => {
-    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    await new Promise((r) =>
+      requestAnimationFrame(() => requestAnimationFrame(r)),
+    );
     const chart = canvasElement?.getElementsByTagName("noise-chart").item(0);
     if (chart && chart instanceof NoiseChart) {
       chart.setNoisePoints(mockPoints);
@@ -44,9 +46,12 @@ export const MostlyNoisy: Story = {
   play: async ({ canvasElement }) => {
     const noisy: NoisePoint[] = Array.from({ length: 20 }, (_, i) => ({
       time: i * 0.5,
-      score: Math.random() > 0.3 ? Math.random() * 0.5 + 0.5 : Math.random() * 0.3,
+      score:
+        Math.random() > 0.3 ? Math.random() * 0.5 + 0.5 : Math.random() * 0.3,
     }));
-    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    await new Promise((r) =>
+      requestAnimationFrame(() => requestAnimationFrame(r)),
+    );
     const chart = canvasElement?.getElementsByTagName("noise-chart").item(0);
     if (chart && chart instanceof NoiseChart) {
       chart.setNoisePoints(noisy);

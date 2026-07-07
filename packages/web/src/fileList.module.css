@@ -36,7 +36,7 @@
 }
 
 .item::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   width: calc(var(--progress, 0) * 100%);
