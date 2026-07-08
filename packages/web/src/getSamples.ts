@@ -1,6 +1,6 @@
-import { assert } from "./assert";
-import { getAviSamples } from "./decode/avi";
-import { type Sample } from "./decode/mjpeg";
+import { assert } from "./assert.ts";
+import { getAviSamples } from "./decode/avi.ts";
+import { type Sample } from "./decode/mjpeg.ts";
 
 export async function getSamples(
   file: File,
@@ -25,7 +25,7 @@ export async function getSamples(
       ["ftyp", "moov", "mdat", "free", "wide", "skip"].includes(tag(4)),
       "Unrecognized container: expected an AVI or MOV/MP4 file",
     );
-    const { getMovSamples } = await import("./decode/mov");
+    const { getMovSamples } = await import("./decode/mov.ts");
     const samples = await getMovSamples(file, onProgress);
     return samples;
   }

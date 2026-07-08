@@ -1,5 +1,5 @@
-import { assert } from "../assert";
-import type { Sample } from "./mjpeg";
+import { assert } from "../assert.ts";
+import type { Sample } from "./mjpeg.ts";
 
 // Minimal RIFF/AVI demuxer for MJPEG DVR files. Reads only chunk headers, the
 // 'hdrl' header list and the 'idx1' index — never the frame data itself.

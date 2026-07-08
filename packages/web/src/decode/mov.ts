@@ -1,7 +1,7 @@
 import * as mp4box from "mp4box";
 import { type AllRegisteredBoxes } from "mp4box";
-import { assert } from "../assert";
-import type { Sample } from "./mjpeg";
+import { assert } from "../assert.ts";
+import type { Sample } from "./mjpeg.ts";
 
 export async function getMovSamples(
   file: File,
