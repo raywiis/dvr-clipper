@@ -34,7 +34,7 @@ jobs:
       - name: Upload web build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: web-dist
+          name: github-pages
           path: packages/web/dist
 
   deploy:
