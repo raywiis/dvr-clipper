@@ -12,6 +12,11 @@ export type DecodedFrame = {
   bitmap: ImageBitmap;
 };
 
+export function getArrayBuffer(file: File, sample: Sample) {
+  const bytes = file.slice(sample.offset, sample.offset + sample.size);
+  return bytes.arrayBuffer();
+}
+
 export async function decodeFrame(
   file: File,
   sample: Sample,

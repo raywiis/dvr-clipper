@@ -1,6 +1,8 @@
 import { NOISE_THRESHOLD } from "./analyze";
 import type { AppState } from "./appState";
+import { encodeMov } from "./encode/mov";
 import styles from "./fileList.module.css";
+import { getSamples } from "./getSamples";
 import { formatTime } from "./player";
 import { NoiseChart } from "./ui/NoiseChart/NoiseChart";
 
@@ -31,6 +33,18 @@ export function renderFileListItem(
 
   item.append(header, chart);
   container.append(item);
+
+  const resampleBtn = document.createElement('button');
+  resampleBtn.style.setProperty('z-index', '1');
+  resampleBtn.textContent = 'resample'
+  resampleBtn.addEventListener('click', () => {
+    getSamples(file, () => {})
+      .then(samples => encodeMov([{ file, samples }]))
+      .then(file => {
+        file.save('resampled.mov');
+      })
+  })
+  item.appendChild(resampleBtn);
 
   item.addEventListener("click", () => onSelect(file));
 
