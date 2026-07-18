@@ -2,11 +2,11 @@ import { analyzeNoise, type NoisePoint } from "./analyze";
 import type { Sample } from "./decode/mjpeg";
 import { getSamples } from "./getSamples";
 
-class AppAddFileEvent extends Event {
+class AppUIAddFileEvent extends Event {
   addedFile: File;
 
   constructor(file: File) {
-    super("addFile");
+    super("ui:addFile");
     this.addedFile = file;
   }
 }
@@ -56,7 +56,7 @@ export class AppFileErrorEvent extends Event {
 }
 
 const eventMap = {
-  addFile: AppAddFileEvent,
+  'ui:addFile': AppUIAddFileEvent,
   "file:statusChange": AppFileStatusChangeEvent,
   "file:noise:added": AppFileNoiseAddedEvent,
   "file:progress": AppFileProgressEvent,
@@ -84,7 +84,7 @@ export class AppState {
       return;
     }
     this.files.push(file);
-    this.eventTarget.dispatchEvent(new AppAddFileEvent(file));
+    this.eventTarget.dispatchEvent(new AppUIAddFileEvent(file));
     this.eventTarget.dispatchEvent(
       new AppFileStatusChangeEvent("Queued", file),
     );
