@@ -108,7 +108,7 @@ export function renderFileList(
 ) {
   container.classList.add(styles.list!);
 
-  appState.addEventListener("addFile", (event) => {
+  appState.addEventListener("ui:addFile", (event) => {
     renderFileListItem(container, appState, event.addedFile, onSelect);
   });
 }
