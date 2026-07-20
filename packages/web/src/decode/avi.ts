@@ -233,7 +233,7 @@ async function samplesFromMoviScan(
   return samples;
 }
 
-export async function getAviSamples(file: File): Promise<Sample[]> {
+export async function getAviSamples(file: File, onProgress: (progress:number) => void): Promise<Sample[]> {
   const riff = await readBytes(file, 0, 12);
   assert(
     fourcc(riff, 0) === "RIFF" && fourcc(riff, 8) === "AVI ",
@@ -257,6 +257,7 @@ export async function getAviSamples(file: File): Promise<Sample[]> {
 
   let pos = 12;
   while (pos + 8 <= riffEnd) {
+    onProgress(pos / riffEnd);
     const chunk = await readChunkHeader(file, pos, riffEnd);
     if (chunk.listType === "hdrl") {
       video = parseHdrl(await readBytes(file, pos + 12, chunk.size - 4));

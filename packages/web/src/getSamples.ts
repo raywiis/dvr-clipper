@@ -18,7 +18,7 @@ export async function getSamples(
     );
 
   if (tag(0) === "RIFF" && tag(8) === "AVI ") {
-    const samples = await getAviSamples(file);
+    const samples = await getAviSamples(file, onProgress);
     return samples;
   } else {
     assert(
