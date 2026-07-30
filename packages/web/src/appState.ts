@@ -56,7 +56,7 @@ export class AppFileErrorEvent extends Event {
 }
 
 const eventMap = {
-  'ui:addFile': AppUIAddFileEvent,
+  "ui:addFile": AppUIAddFileEvent,
   "file:statusChange": AppFileStatusChangeEvent,
   "file:noise:added": AppFileNoiseAddedEvent,
   "file:progress": AppFileProgressEvent,

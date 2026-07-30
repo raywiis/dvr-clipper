@@ -1,11 +1,11 @@
 import { assert } from "../assert.ts";
 import { getArrayBuffer, decodeFrame, type Sample } from "../decode/mjpeg.ts";
-import * as mp4box from 'mp4box';
+import * as mp4box from "mp4box";
 
 export type Section = {
   file: File;
   samples: Sample[];
-}
+};
 
 const TIMESCALE = 90000;
 const DEFAULT_FPS = 30;

@@ -233,7 +233,10 @@ async function samplesFromMoviScan(
   return samples;
 }
 
-export async function getAviSamples(file: File, onProgress: (progress:number) => void): Promise<Sample[]> {
+export async function getAviSamples(
+  file: File,
+  onProgress: (progress: number) => void,
+): Promise<Sample[]> {
   const riff = await readBytes(file, 0, 12);
   assert(
     fourcc(riff, 0) === "RIFF" && fourcc(riff, 8) === "AVI ",

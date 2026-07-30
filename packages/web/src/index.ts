@@ -1,9 +1,7 @@
 import { assert } from "./assert";
 import { select } from "./dom";
 import { createPlayer } from "./player";
-import {
-  FileList as FileListElement,
-} from "./ui/FileList/FileList";
+import { FileList as FileListElement } from "./ui/FileList/FileList";
 import { PlayButton } from "./ui/player/PlayButton";
 import { registerCustomElements } from "./ui/register";
 import { NoiseChart } from "./ui/NoiseChart/NoiseChart";
@@ -40,7 +38,7 @@ async function handleFiles(newFiles: FileList) {
 }
 
 fileList.configure(state);
-fileList.addEventListener('file-select', (event) => {
+fileList.addEventListener("file-select", (event) => {
   const { file } = event.detail;
   const samples = state.fileSamples.get(file);
   if (!samples) return;
