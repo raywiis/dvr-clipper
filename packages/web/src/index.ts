@@ -1,7 +1,9 @@
 import { assert } from "./assert";
 import { select } from "./dom";
 import { createPlayer } from "./player";
-import { renderFileList } from "./fileList";
+import {
+  FileList as FileListElement,
+} from "./ui/FileList/FileList";
 import { PlayButton } from "./ui/player/PlayButton";
 import { registerCustomElements } from "./ui/register";
 import { NoiseChart } from "./ui/NoiseChart/NoiseChart";
@@ -16,7 +18,7 @@ const scrub = select(".timeline-scrub", HTMLInputElement);
 const timeLabel = select(".timeline-time", HTMLElement);
 const noiseChart = select(".timeline-noise", NoiseChart);
 const playButton = select(".play-button", PlayButton);
-const listEl = select(".filelist", HTMLUListElement);
+const fileList = select(".filelist", FileListElement);
 
 const ctx = canvas.getContext("2d");
 assert(ctx, "No canvas context");
@@ -37,7 +39,9 @@ async function handleFiles(newFiles: FileList) {
   errorLabel.textContent = "";
 }
 
-renderFileList(listEl, state, (file) => {
+fileList.configure(state);
+fileList.addEventListener('file-select', (event) => {
+  const { file } = event.detail;
   const samples = state.fileSamples.get(file);
   if (!samples) return;
   const noise = state.fileNoise.get(file) ?? [];

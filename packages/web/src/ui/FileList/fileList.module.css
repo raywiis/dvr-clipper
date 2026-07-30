@@ -1,16 +1,21 @@
+.host {
+  display: block;
+  width: 100%;
+  max-width: 720px;
+}
+
+.host[hidden] {
+  display: none;
+}
+
 .list {
   list-style: none;
   margin: 0;
   padding: 0;
   width: 100%;
-  max-width: 720px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-.list[hidden] {
-  display: none;
 }
 
 .item {
@@ -62,7 +67,8 @@
 }
 
 .name,
-.status {
+.status,
+.action {
   position: relative;
   z-index: 1;
 }
@@ -82,4 +88,8 @@
 
 .item.isError .status {
   color: #d64545;
+}
+
+.action {
+  align-self: flex-start;
 }
