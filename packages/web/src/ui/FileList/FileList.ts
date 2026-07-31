@@ -1,8 +1,8 @@
 import { NOISE_THRESHOLD } from "../../analyze";
 import type { AppState } from "../../appState";
 import { encodeMov } from "../../encode/mov";
+import { formatDuration } from "../../formatDuration";
 import { getSamples } from "../../getSamples";
-import { formatTime } from "../../player";
 import { NoiseChart } from "../NoiseChart/NoiseChart";
 import styles from "./fileList.module.css";
 
@@ -74,7 +74,7 @@ export class FileList extends HTMLElement {
       const duration = samples[samples.length - 1]?.time ?? 0;
       this.#setProgress(entry.item, 1);
       entry.item.classList.add(styles.isReady!);
-      entry.status.textContent = `${staticPct}% static · ${formatTime(duration)} · ${samples.length} frames`;
+      entry.status.textContent = `${staticPct}% static · ${formatDuration(duration)} · ${samples.length} frames`;
     });
 
     appState.addEventListener("file:progress", (event) => {

@@ -1,5 +1,5 @@
 import { assert } from "../../assert";
-import { formatTime } from "../../player";
+import { formatDuration } from "../../formatDuration";
 import styles from "./scrubTimeline.module.css";
 
 export class ScrubTimeline extends HTMLElement {
@@ -30,7 +30,7 @@ export class ScrubTimeline extends HTMLElement {
     const scrub = this.#getScrub();
     const timeLabel = this.#getTimeLabel();
     scrub.value = String(frameIndex);
-    timeLabel.textContent = `${formatTime(currentTime)} / ${formatTime(
+    timeLabel.textContent = `${formatDuration(currentTime)} / ${formatDuration(
       this.#duration,
     )}`;
   }

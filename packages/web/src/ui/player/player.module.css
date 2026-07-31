@@ -1,0 +1,52 @@
+.host {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 720px;
+}
+
+.host[hidden] {
+  display: none;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  line-height: 0;
+}
+
+.timeline {
+  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.playButton {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.timelineNoise {
+  width: 100%;
+  height: 28px;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.timelineScrub {
+  width: 100%;
+}
