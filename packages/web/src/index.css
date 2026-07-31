@@ -121,19 +121,4 @@ play-button {
 
 .timeline-scrub {
   width: 100%;
-  margin: 0;
-  accent-color: var(--accent);
-  cursor: pointer;
-}
-
-.timeline-scrub:disabled {
-  cursor: default;
-}
-
-.timeline-time {
-  align-self: center;
-  font-size: 13px;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
 }

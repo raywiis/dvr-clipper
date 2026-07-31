@@ -1,26 +1,26 @@
+import { AppState } from "./appState";
 import { assert } from "./assert";
 import { select } from "./dom";
 import { createPlayer } from "./player";
 import { FileList as FileListElement } from "./ui/FileList/FileList";
-import { PlayButton } from "./ui/player/PlayButton";
-import { registerCustomElements } from "./ui/register";
 import { NoiseChart } from "./ui/NoiseChart/NoiseChart";
-import { AppState } from "./appState";
+import { PlayButton } from "./ui/player/PlayButton";
+import { ScrubTimeline } from "./ui/player/ScrubTimeline";
+import { registerCustomElements } from "./ui/register";
 
 registerCustomElements();
 
 const fileInput = select('.dropzone input[type="file"]', HTMLInputElement);
 const errorLabel = select("#dropzone-error", HTMLElement);
 const canvas = select("canvas", HTMLCanvasElement);
-const scrub = select(".timeline-scrub", HTMLInputElement);
-const timeLabel = select(".timeline-time", HTMLElement);
+const timeline = select(".timeline-scrub", ScrubTimeline);
 const noiseChart = select(".timeline-noise", NoiseChart);
 const playButton = select(".play-button", PlayButton);
 const fileList = select(".filelist", FileListElement);
 
 const ctx = canvas.getContext("2d");
 assert(ctx, "No canvas context");
-const player = { canvas, ctx, scrub, timeLabel, noise: noiseChart, playButton };
+const player = { canvas, ctx, timeline, noise: noiseChart, playButton };
 
 const state = new AppState();
 

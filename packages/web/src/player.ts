@@ -1,13 +1,13 @@
 import { type NoisePoint } from "./analyze";
 import type { NoiseChart } from "./ui/NoiseChart/NoiseChart";
 import type { PlayButton } from "./ui/player/PlayButton";
+import type { ScrubTimeline } from "./ui/player/ScrubTimeline";
 import { decodeFrame, type Sample } from "./decode/mjpeg";
 
 export type PlayerElements = {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
-  scrub: HTMLInputElement;
-  timeLabel: HTMLElement;
+  timeline: ScrubTimeline;
   noise: NoiseChart;
   playButton: PlayButton;
 };
@@ -20,7 +20,7 @@ export function formatTime(seconds: number): string {
 }
 
 // Stops playback from a previously loaded file: createPlayer re-runs per file
-// but they share one canvas/scrub, so a stale rAF loop would keep drawing.
+// but they share one canvas/timeline, so a stale rAF loop would keep drawing.
 let stopActivePlayback: (() => void) | null = null;
 
 export async function createPlayer(
@@ -29,7 +29,7 @@ export async function createPlayer(
   samples: Sample[],
   noise: NoisePoint[],
 ) {
-  const { canvas, ctx, scrub, timeLabel, playButton } = els;
+  const { canvas, ctx, timeline, playButton } = els;
 
   stopActivePlayback?.();
   els.noise.setNoisePoints(noise);
@@ -43,12 +43,7 @@ export async function createPlayer(
   const lastFrame = samples.length - 1;
   const duration = samples[lastFrame]!.time;
 
-  scrub.min = "0";
-  scrub.max = String(lastFrame);
-  scrub.step = "1";
-  scrub.value = "0";
-  scrub.disabled = false;
-  timeLabel.textContent = `${formatTime(0)} / ${formatTime(duration)}`;
+  timeline.configure(lastFrame, duration);
 
   let rendered = 0;
   let pending: number | null = null;
@@ -85,8 +80,7 @@ export async function createPlayer(
   }
 
   function showFrame(index: number) {
-    scrub.value = String(index);
-    timeLabel.textContent = `${formatTime(samples[index]!.time)} / ${formatTime(duration)}`;
+    timeline.seek(samples[index]!.time, index);
     seekTo(index);
   }
 
@@ -111,8 +105,7 @@ export async function createPlayer(
   function play() {
     if (playing) return;
     // Restart from the beginning if we're parked at the end.
-    const startIndex =
-      Number(scrub.value) >= lastFrame ? 0 : Number(scrub.value);
+    const startIndex = timeline.value >= lastFrame ? 0 : timeline.value;
     anchorTime = samples[startIndex]!.time;
     anchorWall = performance.now();
     playing = true;
@@ -127,21 +120,22 @@ export async function createPlayer(
     playButton.pause();
   }
 
-  stopActivePlayback = pause;
-
   playing = false;
   playButton.pause();
 
   playButton.onclick = () => (playing ? pause() : play());
 
-  // Assignment, not addEventListener: loading a different file re-runs
-  // createPlayer, and we want the new closure to replace the old handler
-  // rather than stack another listener on the shared scrub element.
-  scrub.oninput = () => {
-    const index = Number(scrub.value);
+  const onTimelineInput = () => {
+    const index = timeline.value;
     // Re-anchor so playback continues smoothly from where the user dragged.
     anchorTime = samples[index]!.time;
     anchorWall = performance.now();
     showFrame(index);
+  };
+  timeline.addEventListener("input", onTimelineInput);
+
+  stopActivePlayback = () => {
+    pause();
+    timeline.removeEventListener("input", onTimelineInput);
   };
 }
