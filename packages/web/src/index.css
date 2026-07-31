@@ -79,14 +79,6 @@ body {
   line-height: 0;
 }
 
-.player canvas {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: 12px;
-  background: #000;
-}
-
 .timeline {
   align-items: stretch;
   display: flex;

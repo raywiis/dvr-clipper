@@ -2,11 +2,11 @@ import { type NoisePoint } from "./analyze";
 import type { NoiseChart } from "./ui/NoiseChart/NoiseChart";
 import type { PlayButton } from "./ui/player/PlayButton";
 import type { ScrubTimeline } from "./ui/player/ScrubTimeline";
-import { decodeFrame, type Sample } from "./decode/mjpeg";
+import type { VideoFrameCanvas } from "./ui/player/VideoFrameCanvas";
+import { type Sample } from "./decode/mjpeg";
 
 export type PlayerElements = {
-  canvas: HTMLCanvasElement;
-  ctx: CanvasRenderingContext2D;
+  frameCanvas: VideoFrameCanvas;
   timeline: ScrubTimeline;
   noise: NoiseChart;
   playButton: PlayButton;
@@ -29,41 +29,17 @@ export async function createPlayer(
   samples: Sample[],
   noise: NoisePoint[],
 ) {
-  const { canvas, ctx, timeline, playButton } = els;
+  const { frameCanvas, timeline, playButton } = els;
 
   stopActivePlayback?.();
   els.noise.setNoisePoints(noise);
 
-  const first = await decodeFrame(file, samples[0]!);
-  canvas.width = first.bitmap.width;
-  canvas.height = first.bitmap.height;
-  ctx.drawImage(first.bitmap, 0, 0, canvas.width, canvas.height);
-  first.bitmap.close();
+  await frameCanvas.configure(file, samples);
 
   const lastFrame = samples.length - 1;
   const duration = samples[lastFrame]!.time;
 
   timeline.configure(lastFrame, duration);
-
-  let rendered = 0;
-  let pending: number | null = null;
-  let busy = false;
-
-  async function seekTo(index: number) {
-    pending = index;
-    if (busy) return;
-    busy = true;
-    while (pending !== null) {
-      const target = pending;
-      pending = null;
-      if (target === rendered) continue;
-      const frame = await decodeFrame(file, samples[target]!);
-      ctx.drawImage(frame.bitmap, 0, 0, canvas.width, canvas.height);
-      frame.bitmap.close();
-      rendered = target;
-    }
-    busy = false;
-  }
 
   /** Largest sample index whose presentation time is <= t (binary search). */
   function indexAtTime(t: number): number {
@@ -81,7 +57,7 @@ export async function createPlayer(
 
   function showFrame(index: number) {
     timeline.seek(samples[index]!.time, index);
-    seekTo(index);
+    return frameCanvas.showFrame(index);
   }
 
   // Playback advances by wall-clock time against the samples' own timestamps, so
