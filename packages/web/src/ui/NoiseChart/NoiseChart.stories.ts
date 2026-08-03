@@ -41,6 +41,20 @@ export const WithData: Story = {
   },
 };
 
+export const WithSeekIndicator: Story = {
+  render: () => "<noise-chart></noise-chart>",
+  play: async ({ canvasElement }) => {
+    await new Promise((r) =>
+      requestAnimationFrame(() => requestAnimationFrame(r)),
+    );
+    const chart = canvasElement?.getElementsByTagName("noise-chart").item(0);
+    if (chart && chart instanceof NoiseChart) {
+      chart.setNoisePoints(mockPoints);
+      chart.setSeekPositionTime(2.5);
+    }
+  },
+};
+
 export const MostlyNoisy: Story = {
   render: () => "<noise-chart></noise-chart>",
   play: async ({ canvasElement }) => {

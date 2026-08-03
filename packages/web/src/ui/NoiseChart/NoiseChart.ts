@@ -1,5 +1,14 @@
 import { NOISE_THRESHOLD, type NoisePoint } from "../../analyze";
+import { assert } from "../../assert";
 import styles from "./noiseChart.module.css";
+
+export const NOISE_CHART_SEEK_EVENT = "noisechart:seek";
+
+export class NoiseChartSeekEvent extends CustomEvent<{ time: number }> {
+  constructor(time: number) {
+    super(NOISE_CHART_SEEK_EVENT, { detail: { time } });
+  }
+}
 
 function createNoiseChart(): SVGSVGElement {
   const chart = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -8,19 +17,34 @@ function createNoiseChart(): SVGSVGElement {
   chart.setAttribute("preserveAspectRatio", "none");
   return chart;
 }
+function createSeekIndicator() {
+  const seek = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  seek.setAttribute("y1", "0");
+  seek.setAttribute("y2", "100");
+  seek.setAttribute("vector-effect", "non-scaling-stroke");
+  seek.setAttribute("class", styles.seekIndicator!);
+  return seek;
+}
 
 export class NoiseChart extends HTMLElement {
-  chartElement: SVGElement | null = null;
   noisePoints: NoisePoint[] | null = null;
+  #chartElement: SVGElement | null = null;
+  #seekIndicator: SVGElement | null = null;
 
   constructor() {
     super();
   }
 
   connectedCallback() {
-    const chart = createNoiseChart();
-    this.appendChild(chart);
-    this.chartElement = chart;
+    this.#chartElement = createNoiseChart();
+    this.#seekIndicator = createSeekIndicator();
+
+    this.#seekIndicator.style.display = "none";
+
+    this.#chartElement.append(this.#seekIndicator);
+    this.appendChild(this.#chartElement);
+
+    this.#chartElement.addEventListener("click", this.#onChartClick);
   }
 
   setNoisePoints(points: NoisePoint[]) {
@@ -28,11 +52,41 @@ export class NoiseChart extends HTMLElement {
     this.render();
   }
 
-  render() {
-    if (!this.chartElement) {
+  setSeekPositionTime(time: number) {
+    if (!this.noisePoints || this.noisePoints.length === 0) {
       return;
     }
-    this.chartElement.replaceChildren();
+    const duration = this.noisePoints.at(-1)?.time || 1;
+    const x = Math.min((time / duration) * 100, 100);
+    const seek = this.#seekIndicator;
+    if (seek) {
+      seek.setAttribute("x1", String(x));
+      seek.setAttribute("x2", String(x));
+      seek.style.display = "";
+    }
+  }
+
+  #onChartClick = (event: MouseEvent) => {
+    if (!this.noisePoints || this.noisePoints.length === 0) {
+      return;
+    }
+    assert(this.#chartElement, "Missing chart element");
+    const rect = this.#chartElement.getBoundingClientRect();
+    if (rect.width <= 0) {
+      return;
+    }
+    const duration = this.noisePoints.at(-1)?.time || 1;
+    const time = ((event.clientX - rect.left) / rect.width) * duration;
+    this.dispatchEvent(
+      new NoiseChartSeekEvent(Math.max(0, Math.min(duration, time))),
+    );
+  };
+
+  render() {
+    if (!this.#chartElement) {
+      return;
+    }
+    this.#chartElement.replaceChildren();
     if (!this.noisePoints) {
       return;
     }
@@ -67,7 +121,7 @@ export class NoiseChart extends HTMLElement {
         "class",
         score >= NOISE_THRESHOLD ? styles.barNoisy! : styles.bar!,
       );
-      this.chartElement.append(bar);
+      this.#chartElement.append(bar);
     }
 
     const thresholdY = (1 - NOISE_THRESHOLD) * 100;
@@ -78,6 +132,9 @@ export class NoiseChart extends HTMLElement {
     line.setAttribute("y2", String(thresholdY));
     line.setAttribute("vector-effect", "non-scaling-stroke");
     line.setAttribute("class", styles.threshold!);
-    this.chartElement.append(line);
+    this.#chartElement.append(line);
+
+    assert(this.#seekIndicator, "Missing seek indicator for render");
+    this.#chartElement.append(this.#seekIndicator);
   }
 }

@@ -1,6 +1,10 @@
 import { type NoisePoint } from "../../analyze";
 import { type Sample } from "../../decode/mjpeg";
-import { NoiseChart } from "../NoiseChart/NoiseChart";
+import {
+  NOISE_CHART_SEEK_EVENT,
+  NoiseChart,
+  type NoiseChartSeekEvent,
+} from "../NoiseChart/NoiseChart";
 import { PlayButton } from "./PlayButton";
 import { ScrubTimeline } from "./ScrubTimeline";
 import { VideoFrameCanvas } from "./VideoFrameCanvas";
@@ -54,7 +58,9 @@ export class Player extends HTMLElement {
     }
 
     function showFrame(index: number) {
-      timeline.seek(samples[index]!.time, index);
+      const time = samples[index]!.time;
+      timeline.seek(time, index);
+      noiseChart.setSeekPositionTime(time);
       return frameCanvas.showFrame(index);
     }
 
@@ -108,6 +114,18 @@ export class Player extends HTMLElement {
       showFrame(index);
     };
     timeline.addEventListener("input", onTimelineInput);
+
+    const onNoiseChartSeek = (event: Event) => {
+      if (!isPlaybackActive()) {
+        return;
+      }
+      const { time } = (event as NoiseChartSeekEvent).detail;
+      const index = indexAtTime(time);
+      anchorTime = samples[index]!.time;
+      anchorWall = performance.now();
+      showFrame(index);
+    };
+    noiseChart.addEventListener(NOISE_CHART_SEEK_EVENT, onNoiseChartSeek);
   }
 
   #startPlayback() {
