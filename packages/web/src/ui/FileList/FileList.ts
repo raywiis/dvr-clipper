@@ -2,7 +2,7 @@ import { NOISE_THRESHOLD } from "../../analyze";
 import type { AppState } from "../../appState";
 import { encodeMov } from "../../encode/mov";
 import { formatDuration } from "../../formatDuration";
-import { getSamples } from "../../getSamples";
+import { getSamples } from "../../decode/getSamples";
 import { NoiseChart } from "../NoiseChart/NoiseChart";
 import styles from "./fileList.module.css";
 

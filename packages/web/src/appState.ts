@@ -1,6 +1,6 @@
 import { analyzeNoise, type NoisePoint } from "./analyze";
 import type { Sample } from "./decode/mjpeg";
-import { getSamples } from "./getSamples";
+import { getSamples } from "./decode/getSamples";
 
 class AppUIAddFileEvent extends Event {
   addedFile: File;
