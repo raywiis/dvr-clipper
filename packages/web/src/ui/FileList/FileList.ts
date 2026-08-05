@@ -2,7 +2,6 @@ import { NOISE_THRESHOLD } from "../../analyze";
 import type { AppState } from "../../appState";
 import { encodeMov } from "../../encode/mov";
 import { formatDuration } from "../../formatDuration";
-import { getSamples } from "../../decode/getSamples";
 import { NoiseChart } from "../NoiseChart/NoiseChart";
 import styles from "./fileList.module.css";
 
@@ -28,6 +27,7 @@ type FileListEntry = {
 };
 
 export class FileList extends HTMLElement {
+  #appState: AppState | null = null;
   #entries = new Map<File, FileListEntry>();
   #renderedList: HTMLUListElement | null = null;
 
@@ -36,6 +36,7 @@ export class FileList extends HTMLElement {
   }
 
   configure(appState: AppState) {
+    this.#appState = appState;
     this.#render();
     for (const file of appState.files) {
       this.#renderFile(file);
@@ -154,20 +155,26 @@ export class FileList extends HTMLElement {
 
     const chart = new NoiseChart();
 
-    const resampleBtn = document.createElement("button");
-    resampleBtn.className = styles.action!;
-    resampleBtn.type = "button";
-    resampleBtn.textContent = "resample";
-    resampleBtn.addEventListener("click", (event) => {
-      event.stopPropagation();
-      getSamples(file, () => {})
-        .then((samples) => encodeMov([{ file, samples }]))
-        .then((file) => {
+    item.append(header, chart);
+
+    const appState = this.#appState;
+    if (appState) {
+      const resampleBtn = document.createElement("button");
+      resampleBtn.className = styles.action!;
+      resampleBtn.type = "button";
+      resampleBtn.textContent = "resample";
+      resampleBtn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const samples = appState.fileSamples.get(file);
+        if (!samples) {
+          return;
+        }
+        encodeMov([{ file, samples }]).then((file) => {
           file.save("resampled.mov");
         });
-    });
-
-    item.append(header, chart, resampleBtn);
+      });
+      item.append(resampleBtn);
+    }
     item.addEventListener("click", () => {
       this.dispatchEvent(new FileListSelectEvent(file));
     });
