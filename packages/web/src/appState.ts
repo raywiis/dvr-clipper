@@ -1,6 +1,7 @@
 import { analyzeNoise, type NoisePoint } from "./analyze";
 import type { Sample } from "./decode/mjpeg";
 import { getSamples } from "./decode/getSamples";
+import { getVideoMetadata, logMetadata } from "./metadata";
 
 class AppUIAddFileEvent extends Event {
   addedFile: File;
@@ -116,6 +117,10 @@ export class AppState {
         ),
       );
       this.fileSamples.set(file, samples);
+
+      // Log metadata to console
+      const meta = await getVideoMetadata(file, samples);
+      logMetadata(meta);
 
       this.eventTarget.dispatchEvent(
         new AppFileStatusChangeEvent("Analyzing", file),
