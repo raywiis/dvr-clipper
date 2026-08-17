@@ -1,5 +1,7 @@
 import { NOISE_THRESHOLD } from "../../analyze";
 import type { AppState } from "../../appState";
+import { assert } from "../../assert";
+import type { Sample } from "../../decode/mjpeg";
 import { encodeMov } from "../../encode/mov";
 import { formatDuration } from "../../formatDuration";
 import { NoiseChart } from "../NoiseChart/NoiseChart";
@@ -173,7 +175,75 @@ export class FileList extends HTMLElement {
           file.save("resampled.mov");
         });
       });
-      item.append(resampleBtn);
+
+
+      const getClipsWithoutNoiseBtn = document.createElement("button");
+      getClipsWithoutNoiseBtn.className = styles.action!;
+      getClipsWithoutNoiseBtn.type = "button";
+      getClipsWithoutNoiseBtn.textContent = "get clips without noise";
+      getClipsWithoutNoiseBtn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const samples = appState.fileSamples.get(file);
+        const noise = appState.fileNoise.get(file);
+
+        assert(samples, "Missing samples");
+        assert(noise, "Missing video noise");
+
+        const noiseThreshold = 0.5;
+        const clearFrameTimeThreshold = 20;
+        let noiseIterator = noise[Symbol.iterator]();
+        let noisePoint = noiseIterator.next();
+        assert(!noisePoint.done, "No noise in the iterator")
+
+        let groups: Sample[][] = [];
+
+        let iteratorState: { recording: true; lastClearFrame: number; } | { recording: false } = { recording: false };
+        for (const sample of samples) {
+          if (!iteratorState.recording && noisePoint.value.score < noiseThreshold) {
+            iteratorState = {
+              recording: true,
+              lastClearFrame: sample.time,
+            }
+            groups.push([]);
+            console.log('group started');
+          }
+
+          if (iteratorState.recording) {
+            const latestGroup = groups.at(-1);
+            assert(latestGroup, "No last group");
+            latestGroup.push(sample);
+
+            if (noisePoint.value.score < noiseThreshold) {
+              iteratorState.lastClearFrame = sample.time;
+            }
+
+            const clearFrameDelta = sample.time - iteratorState.lastClearFrame;
+            if (clearFrameDelta > clearFrameTimeThreshold) {
+              iteratorState = { recording: false };
+              console.log('group closed')
+            }
+          }
+
+          if (noisePoint.value.time < sample.time) {
+            noisePoint = noiseIterator.next();
+          }
+          assert(!noisePoint.done, "Abrupt noise end")
+          // if (noisePoint.done) {
+          //   break;
+          // }
+        }
+
+        console.log('groups', { groups })
+        for (const group of groups) {
+          encodeMov([{file, samples: group}]).then(file => {
+            file.save('thing');
+          }).catch(err => {
+            console.error('Failed to reencode', err)
+          })
+        }
+      });
+
+      item.append(resampleBtn, getClipsWithoutNoiseBtn);
     }
     item.addEventListener("click", () => {
       this.dispatchEvent(new FileListSelectEvent(file));
