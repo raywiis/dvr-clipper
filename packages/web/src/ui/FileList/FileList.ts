@@ -1,4 +1,4 @@
-import { NOISE_THRESHOLD } from "../../analyze";
+import { NOISE_THRESHOLD, type NoisePoint } from "../../analyze";
 import type { AppState } from "../../appState";
 import { assert } from "../../assert";
 import type { Sample } from "../../decode/mjpeg";
@@ -62,7 +62,6 @@ function getNoiselessGroupsFromFile(
       const clearFrameDelta = sample.time - iteratorState.lastClearFrame;
       if (clearFrameDelta > clearFrameTimeThreshold) {
         iteratorState = { recording: false };
-        console.log("group closed");
       }
     }
 

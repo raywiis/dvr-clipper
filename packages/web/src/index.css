@@ -19,6 +19,24 @@ body {
   padding: 12px;
 }
 
+.extract-all {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.extract-all:hover,
+.extract-all:focus-visible {
+  border-color: var(--accent);
+  background: #fafbff;
+}
+
 .dropzone {
   position: relative;
   width: 100%;
