@@ -40,3 +40,6 @@ fileInput.addEventListener("input", () => {
     handleFiles(fileInput.files);
   }
 });
+
+// @ts-expect-error
+window.appState = state;
