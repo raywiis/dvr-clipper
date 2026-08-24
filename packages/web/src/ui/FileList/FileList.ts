@@ -4,6 +4,7 @@ import { assert } from "../../assert";
 import type { Sample } from "../../decode/mjpeg";
 import { encodeMov } from "../../encode/mov";
 import { formatDuration } from "../../formatDuration";
+import { getNoiselessGroupsFromFiles } from "../../getNoiselessGroupsFromFiles";
 import { NoiseChart } from "../NoiseChart/NoiseChart";
 import styles from "./fileList.module.css";
 
@@ -22,56 +23,11 @@ function getNoiselessGroupsFromFile(
   appState: AppState,
   file: File,
 ): Sample[][] {
-  let groups: Sample[][] = [];
-  let iteratorState:
-    { recording: true; lastClearFrame: number } | { recording: false } = {
-    recording: false,
-  };
-
-  const noiseThreshold = 0.5;
-  const clearFrameTimeThreshold = 20;
-
-  const samples = appState.fileSamples.get(file);
-  const noise = appState.fileNoise.get(file);
-
-  assert(samples, "Missing samples");
-  assert(noise, "Missing video noise");
-
-  let noiseIterator = noise[Symbol.iterator]();
-  let noisePoint = noiseIterator.next();
-  assert(!noisePoint.done, "No noise in the iterator");
-
-  for (const sample of samples) {
-    if (!iteratorState.recording && noisePoint.value.score < noiseThreshold) {
-      iteratorState = {
-        recording: true,
-        lastClearFrame: sample.time,
-      };
-      groups.push([]);
-    }
-
-    if (iteratorState.recording) {
-      const latestGroup = groups.at(-1);
-      assert(latestGroup, "No last group");
-      latestGroup.push(sample);
-
-      if (noisePoint.value.score < noiseThreshold) {
-        iteratorState.lastClearFrame = sample.time;
-      }
-
-      const clearFrameDelta = sample.time - iteratorState.lastClearFrame;
-      if (clearFrameDelta > clearFrameTimeThreshold) {
-        iteratorState = { recording: false };
-      }
-    }
-
-    if (noisePoint.value.time < sample.time) {
-      noisePoint = noiseIterator.next();
-    }
-    assert(!noisePoint.done, "Abrupt noise end");
-  }
-
-  return groups;
+  const groups = getNoiselessGroupsFromFiles(appState, [file]);
+  return groups.map(sections => {
+    assert(sections.length === 1, "Multiple sections from a single file");
+    return sections.flatMap(section => section.samples);
+  })
 }
 
 type FileListEventMap = {
