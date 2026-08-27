@@ -21,6 +21,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@dvr-clipper/web@workspace:packages/web":
+  version: 0.0.0-use.local
+  resolution: "@dvr-clipper/web@workspace:packages/web"
+  dependencies:
+    "@ffmpeg/ffmpeg": "npm:^0.12.15"
+    "@ffmpeg/util": "npm:^0.12.2"
+    "@storybook/html-vite": "npm:^10.4.6"
+    "@types/node": "npm:^26.0.1"
+    mp4box: "npm:^2.3.0"
+    prettier: "npm:^3.8.4"
+    storybook: "npm:^10.4.6"
+    typescript: "npm:^6.0.3"
+    vite: "npm:^8.0.13"
+  languageName: unknown
+  linkType: soft
+
 "@emnapi/core@npm:1.11.0":
   version: 1.11.0
   resolution: "@emnapi/core@npm:1.11.0"
@@ -300,22 +316,6 @@ __metadata:
   checksum: 10c0/a1c8ab735762f2b1e3174bf96125feb541be528327843c9719042012381603a17d511d01afd2c8c2e7349453a8001ae6bf1ba8769779d305342e7f42ed704a9d
   languageName: node
   linkType: hard
-
-"@fpv-clipper/web@workspace:packages/web":
-  version: 0.0.0-use.local
-  resolution: "@fpv-clipper/web@workspace:packages/web"
-  dependencies:
-    "@ffmpeg/ffmpeg": "npm:^0.12.15"
-    "@ffmpeg/util": "npm:^0.12.2"
-    "@storybook/html-vite": "npm:^10.4.6"
-    "@types/node": "npm:^26.0.1"
-    mp4box: "npm:^2.3.0"
-    prettier: "npm:^3.8.4"
-    storybook: "npm:^10.4.6"
-    typescript: "npm:^6.0.3"
-    vite: "npm:^8.0.13"
-  languageName: unknown
-  linkType: soft
 
 "@isaacs/fs-minipass@npm:^4.0.0":
   version: 4.0.1
@@ -1493,6 +1493,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dvr-clipper@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "dvr-clipper@workspace:."
+  dependencies:
+    "@yarnpkg/sdks": "npm:^3.2.3"
+    typescript: "npm:^6.0.3"
+  languageName: unknown
+  linkType: soft
+
 "end-of-stream@npm:^1.1.0":
   version: 1.4.5
   resolution: "end-of-stream@npm:1.4.5"
@@ -1671,15 +1680,6 @@ __metadata:
   checksum: 10c0/b75b691bbe065472f38824f694c2f7449d7f5004aa950426a2c28f0306c60db9b880c0b0e4ed819997ffb882d1da02cfcfc819bddc94d71627f5269682edf018
   languageName: node
   linkType: hard
-
-"fpv-clipper@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "fpv-clipper@workspace:."
-  dependencies:
-    "@yarnpkg/sdks": "npm:^3.2.3"
-    typescript: "npm:^6.0.3"
-  languageName: unknown
-  linkType: soft
 
 "fsevents@npm:~2.3.3":
   version: 2.3.3

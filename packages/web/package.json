@@ -1,5 +1,5 @@
 {
-  "name": "@fpv-clipper/web",
+  "name": "@dvr-clipper/web",
   "packageManager": "yarn@4.9.1",
   "type": "module",
   "scripts": {

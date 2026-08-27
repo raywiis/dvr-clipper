@@ -1,5 +1,5 @@
 {
-  "name": "fpv-clipper",
+  "name": "dvr-clipper",
   "packageManager": "yarn@4.9.1",
   "scripts": {
     "build": "yarn workspaces foreach -Wt run build",
