@@ -171,6 +171,24 @@ export class FileList extends HTMLElement {
 
     item.append(header, chart);
 
+    item.draggable = true;
+    // TODO: Make this more animated
+    item.addEventListener('dragstart', (event) => {
+      console.log('dragstart on ' + file.name, event);
+    });
+    item.addEventListener('drag', (event) => {
+      console.log('drag', event);
+    })
+    item.addEventListener('dragover', event => {
+      event.preventDefault()
+      console.log('dragover on ' + file.name, event);
+    })
+
+    item.addEventListener('drop', event => {
+      event.preventDefault();
+      console.log('dropped on ' + file.name, event);
+    })
+
     const appState = this.#appState;
     if (appState) {
       const resampleBtn = document.createElement("button");
