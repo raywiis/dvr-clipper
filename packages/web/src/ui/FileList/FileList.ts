@@ -176,7 +176,7 @@ export class FileList extends HTMLElement {
       const resampleBtn = document.createElement("button");
       resampleBtn.className = styles.action!;
       resampleBtn.type = "button";
-      resampleBtn.textContent = "resample";
+      resampleBtn.textContent = "Resample whole file";
       resampleBtn.addEventListener("click", (event) => {
         event.stopPropagation();
         const samples = appState.fileSamples.get(file);
@@ -191,7 +191,7 @@ export class FileList extends HTMLElement {
       const getClipsWithoutNoiseBtn = document.createElement("button");
       getClipsWithoutNoiseBtn.className = styles.action!;
       getClipsWithoutNoiseBtn.type = "button";
-      getClipsWithoutNoiseBtn.textContent = "get clips without noise";
+      getClipsWithoutNoiseBtn.textContent = "Get clips between the noise";
       getClipsWithoutNoiseBtn.addEventListener("click", (event) => {
         event.stopPropagation();
 
