@@ -6,7 +6,7 @@ import { encodeMov } from "../../../encode/mov";
 import { formatDuration } from "../../../formatDuration";
 import { getNoiselessGroupsFromFiles } from "../../../getNoiselessGroupsFromFiles";
 import { NoiseChart } from "../../NoiseChart/NoiseChart";
-import styles from "./FileListItem.module.css";
+import styles from "./fileListItem.module.css";
 
 function getNoiselessGroupsFromFile(
   appState: AppState,
