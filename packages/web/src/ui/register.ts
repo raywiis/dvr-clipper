@@ -1,4 +1,5 @@
-import { FileList } from "./FileList/FileList";
+import { FileList } from "./FileList/FileList/FileList";
+import { FileListItem } from "./FileList/FileListItem/FileListItem";
 import { NoiseChart } from "./NoiseChart/NoiseChart";
 import { PlayButton } from "./player/PlayButton";
 import { Player } from "./player/Player";
@@ -12,4 +13,5 @@ export function registerCustomElements() {
   window.customElements.define("video-frame-canvas", VideoFrameCanvas);
   window.customElements.define("video-player", Player);
   window.customElements.define("file-list", FileList);
+  window.customElements.define("file-list-item", FileListItem);
 }

@@ -1,0 +1,19 @@
+.host {
+  display: block;
+  width: 100%;
+  max-width: 720px;
+}
+
+.host[hidden] {
+  display: none;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

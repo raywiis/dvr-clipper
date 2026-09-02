@@ -2,7 +2,7 @@ import { AppState } from "./appState";
 import { select } from "./dom";
 import { encodeMov } from "./encode/mov";
 import { getNoiselessGroupsFromFiles } from "./getNoiselessGroupsFromFiles";
-import { FileList as FileListElement } from "./ui/FileList/FileList";
+import { FileList as FileListElement } from "./ui/FileList/FileList/FileList";
 import { Player } from "./ui/player/Player";
 import { registerCustomElements } from "./ui/register";
 
