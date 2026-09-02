@@ -1,12 +1,11 @@
 import { NOISE_THRESHOLD } from "../../../analyze";
-import type { AppState } from "../../../appState";
+import { AppUISelectFileEvent, type AppState } from "../../../appState";
 import { assert } from "../../../assert";
 import type { Sample } from "../../../decode/mjpeg";
 import { encodeMov } from "../../../encode/mov";
 import { formatDuration } from "../../../formatDuration";
 import { getNoiselessGroupsFromFiles } from "../../../getNoiselessGroupsFromFiles";
 import { NoiseChart } from "../../NoiseChart/NoiseChart";
-import { FileListSelectEvent } from "../FileList/FileList";
 import styles from "./FileListItem.module.css";
 
 function getNoiselessGroupsFromFile(
@@ -14,10 +13,10 @@ function getNoiselessGroupsFromFile(
   file: File,
 ): Sample[][] {
   const groups = getNoiselessGroupsFromFiles(appState, [file]);
-  return groups.map(sections => {
+  return groups.map((sections) => {
     assert(sections.length === 1, "Multiple sections from a single file");
-    return sections.flatMap(section => section.samples);
-  })
+    return sections.flatMap((section) => section.samples);
+  });
 }
 
 export class FileListItem extends HTMLElement {
@@ -58,21 +57,21 @@ export class FileListItem extends HTMLElement {
 
     item.draggable = true;
     // TODO: Make this more animated
-    item.addEventListener('dragstart', (event) => {
-      console.log('dragstart on ' + this.#file.name, event);
+    item.addEventListener("dragstart", (event) => {
+      console.log("dragstart on " + this.#file.name, event);
     });
-    item.addEventListener('drag', (event) => {
-      console.log('drag', event);
-    })
-    item.addEventListener('dragover', event => {
-      event.preventDefault()
-      console.log('dragover on ' + this.#file.name, event);
-    })
-
-    item.addEventListener('drop', event => {
+    item.addEventListener("drag", (event) => {
+      console.log("drag", event);
+    });
+    item.addEventListener("dragover", (event) => {
       event.preventDefault();
-      console.log('dropped on ' + this.#file.name, event);
-    })
+      console.log("dragover on " + this.#file.name, event);
+    });
+
+    item.addEventListener("drop", (event) => {
+      event.preventDefault();
+      console.log("dropped on " + this.#file.name, event);
+    });
 
     const resampleBtn = document.createElement("button");
     resampleBtn.className = styles.action!;
@@ -110,14 +109,15 @@ export class FileListItem extends HTMLElement {
 
     item.append(resampleBtn, getClipsWithoutNoiseBtn);
     item.addEventListener("click", () => {
-      this.dispatchEvent(new FileListSelectEvent(this.#file));
+      this.#appState.eventTarget.dispatchEvent(
+        new AppUISelectFileEvent(this.#file),
+      );
     });
 
     const setProgress = (fraction: number) => {
       const clamped = Math.max(0, Math.min(1, fraction));
       item.style.setProperty("--progress", String(clamped));
-
-    }
+    };
 
     this.#appState.addEventListener("file:statusChange", (event) => {
       if (event.file !== this.#file) {
@@ -134,14 +134,14 @@ export class FileListItem extends HTMLElement {
     });
 
     this.#appState.addEventListener("file:error", (event) => {
-      if (event.file!== this.#file) {
+      if (event.file !== this.#file) {
         return;
       }
-      setProgress( 1);
+      setProgress(1);
       item.classList.add(styles.isError!);
       status.textContent = event.message;
     });
-    
+
     this.#appState.addEventListener("file:noise:added", (event) => {
       if (event.file !== this.#file) {
         return;

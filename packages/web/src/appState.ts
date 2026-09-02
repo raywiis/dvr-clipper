@@ -3,11 +3,20 @@ import type { Sample } from "./decode/mjpeg";
 import { getSamples } from "./decode/getSamples";
 
 class AppUIAddFileEvent extends Event {
-  addedFile: File;
+  file: File;
 
   constructor(file: File) {
     super("ui:addFile");
-    this.addedFile = file;
+    this.file = file;
+  }
+}
+
+export class AppUISelectFileEvent extends Event {
+  file: File;
+
+  constructor(file: File) {
+    super("ui:selectFile");
+    this.file = file;
   }
 }
 
@@ -57,6 +66,7 @@ export class AppFileErrorEvent extends Event {
 
 const eventMap = {
   "ui:addFile": AppUIAddFileEvent,
+  "ui:selectFile": AppUISelectFileEvent,
   "file:statusChange": AppFileStatusChangeEvent,
   "file:noise:added": AppFileNoiseAddedEvent,
   "file:progress": AppFileProgressEvent,

@@ -4,9 +4,9 @@ import {
   AppFileProgressEvent,
   AppFileStatusChangeEvent,
   AppState,
-} from "../../appState";
-import type { NoisePoint } from "../../analyze";
-import type { Sample } from "../../decode/mjpeg";
+} from "../../../appState";
+import type { NoisePoint } from "../../../analyze";
+import type { Sample } from "../../../decode/mjpeg";
 import { FileList } from "./FileList";
 
 const meta: Meta = {

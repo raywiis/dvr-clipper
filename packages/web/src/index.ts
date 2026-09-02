@@ -29,8 +29,9 @@ async function handleFiles(newFiles: FileList) {
 }
 
 fileList.configure(state);
-fileList.addEventListener("file-select", (event) => {
-  const { file } = event.detail;
+
+state.addEventListener("ui:selectFile", (event) => {
+  const { file } = event;
   const samples = state.fileSamples.get(file);
   if (!samples) return;
   const noise = state.fileNoise.get(file) ?? [];
@@ -46,8 +47,7 @@ fileInput.addEventListener("input", () => {
 const extractAllBtn = select("#extract-all-clips", HTMLButtonElement);
 extractAllBtn.addEventListener("click", () => {
   const readyFiles = state.files.filter(
-    (file) =>
-      state.fileSamples.has(file) && state.fileNoise.has(file),
+    (file) => state.fileSamples.has(file) && state.fileNoise.has(file),
   );
   if (readyFiles.length === 0) {
     errorLabel.textContent = "No analyzed videos to process";
@@ -55,9 +55,7 @@ extractAllBtn.addEventListener("click", () => {
   }
   errorLabel.textContent = "";
 
-  console.log('ready yes', {readyFiles})
   const groups = getNoiselessGroupsFromFiles(state, readyFiles);
-  console.log('done yes', { groups })
   groups.forEach((group, index) => {
     encodeMov(group)
       .then((file) => {

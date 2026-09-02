@@ -2,10 +2,7 @@ import type { AppState } from "./appState";
 import { assert } from "./assert";
 import type { Sample } from "./decode/mjpeg";
 
-export function getNoiselessGroupsFromFiles (
-  appState: AppState,
-  files: File[],
-) {
+export function getNoiselessGroupsFromFiles(appState: AppState, files: File[]) {
   const inputs = files.map((file) => {
     const samples = appState.fileSamples.get(file);
     const noise = appState.fileNoise.get(file);
@@ -17,8 +14,8 @@ export function getNoiselessGroupsFromFiles (
   const noiseThreshold = 0.5;
   const clearFrameTimeThreshold = 20;
 
-  type Section = Array<{ file: File, samples: Sample[] }>
-  type Groups = Array<Section>
+  type Section = Array<{ file: File; samples: Sample[] }>;
+  type Groups = Array<Section>;
   const groups: Groups = [];
   let iteratorState:
     { recording: true; lastClearFrame: number } | { recording: false } = {
@@ -35,8 +32,11 @@ export function getNoiselessGroupsFromFiles (
 
     if (iteratorState.recording) {
       const lastSection = groups.at(-1);
-      assert(lastSection, "No last group when swapping file and still recording");
-      lastSection.push({ file: input.file, samples: [] })
+      assert(
+        lastSection,
+        "No last group when swapping file and still recording",
+      );
+      lastSection.push({ file: input.file, samples: [] });
     }
 
     for (const sample of input.samples) {
