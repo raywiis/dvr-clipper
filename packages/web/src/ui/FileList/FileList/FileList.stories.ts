@@ -3,8 +3,8 @@ import {
   AppFileNoiseAddedEvent,
   AppFileProgressEvent,
   AppFileStatusChangeEvent,
-  AppState,
-} from "../../../appState";
+} from "../../../appStateEvents";
+import { AppState } from "../../../appState";
 import type { NoisePoint } from "../../../analyze";
 import type { Sample } from "../../../decode/mjpeg";
 import { FileList } from "./FileList";

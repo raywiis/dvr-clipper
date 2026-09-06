@@ -1,94 +1,29 @@
-import { analyzeNoise, type NoisePoint } from "./analyze";
+import type { NoisePoint } from "./analyze";
 import type { Sample } from "./decode/mjpeg";
-import { getSamples } from "./decode/getSamples";
 
-class AppUIReorderFilesEvent extends Event {
-  constructor() {
-    super("ui:reorderFiles");
-  }
-}
+import {
+  AppUIReorderFilesEvent,
+  AppUIAddFileEvent,
+  AppFileStatusChangeEvent,
+  AppFileNoiseAddedEvent,
+  AppFileAnalysisCompleteEvent,
+  AppFileProgressEvent,
+  AppFileErrorEvent,
+  type AppStateEventType,
+  type AppStateEventListener,
+  AppFileSamplesAddedEvent,
+} from "./appStateEvents";
+import type {
+  FileWorkerMessage,
+  FileWorkerRequest,
+} from "./fileWorker/messages";
 
-class AppUIAddFileEvent extends Event {
-  file: File;
+const fileWorker = new Worker(
+  new URL("./fileWorker/fileProcessingWorker.ts", import.meta.url),
+  { type: "module" },
+);
 
-  constructor(file: File) {
-    super("ui:addFile");
-    this.file = file;
-  }
-}
-
-export class AppUISelectFileEvent extends Event {
-  file: File;
-
-  constructor(file: File) {
-    super("ui:selectFile");
-    this.file = file;
-  }
-}
-
-export class AppFileStatusChangeEvent extends Event {
-  public file: File;
-  status: string;
-
-  constructor(status: string, file: File) {
-    super("file:statusChange");
-    this.status = status;
-    this.file = file;
-  }
-}
-
-export class AppFileNoiseAddedEvent extends Event {
-  noisePoints: NoisePoint[];
-  file: File;
-
-  constructor(noisePoints: NoisePoint[], file: File) {
-    super("file:noise:added");
-    this.file = file;
-    this.noisePoints = noisePoints;
-  }
-}
-
-export class AppFileProgressEvent extends Event {
-  progress: number;
-  file: File;
-
-  constructor(progress: number, file: File) {
-    super("file:progress");
-    this.progress = progress;
-    this.file = file;
-  }
-}
-
-export class AppFileErrorEvent extends Event {
-  message: string;
-  file: File;
-
-  constructor(message: string, file: File) {
-    super("file:error");
-    this.file = file;
-    this.message = message;
-  }
-}
-
-const eventMap = {
-  "ui:reorderFiles": AppUIReorderFilesEvent,
-  "ui:addFile": AppUIAddFileEvent,
-  "ui:selectFile": AppUISelectFileEvent,
-  "file:statusChange": AppFileStatusChangeEvent,
-  "file:noise:added": AppFileNoiseAddedEvent,
-  "file:progress": AppFileProgressEvent,
-  "file:error": AppFileErrorEvent,
-} as const;
-
-type AppStateEventType = keyof typeof eventMap;
-
-export type AppStateEvent<T extends AppStateEventType> = InstanceType<
-  (typeof eventMap)[T]
->;
-
-export type AppStateEventListener<T extends AppStateEventType> = (
-  event: AppStateEvent<T>,
-) => void;
+let nextRequestId = 0;
 
 export class AppState {
   eventTarget = new EventTarget();
@@ -147,37 +82,81 @@ export class AppState {
     this.eventTarget.addEventListener(eventType, eventListener);
   }
 
-  async #processFile(file: File) {
+  #processFile(file: File) {
+    const requestId = nextRequestId++;
+    const cleanup = () => {
+      fileWorker.removeEventListener("message", onMessage);
+      fileWorker.removeEventListener("error", onError);
+      fileWorker.removeEventListener("messageerror", onMessageError);
+    };
+    const reportError = (message: string) => {
+      cleanup();
+      this.eventTarget.dispatchEvent(new AppFileErrorEvent(message, file));
+    };
+    const onMessage = ({ data }: MessageEvent<FileWorkerMessage>) => {
+      if (data.requestId !== requestId) return;
+
+      switch (data.type) {
+        case "progress":
+          this.eventTarget.dispatchEvent(
+            new AppFileProgressEvent(data.progress, file),
+          );
+          break;
+        case "statusChange":
+          this.eventTarget.dispatchEvent(
+            new AppFileStatusChangeEvent(data.status, file),
+          );
+          break;
+        case "samplesAdded":
+          this.fileSamples.set(file, data.samples);
+          this.eventTarget.dispatchEvent(
+            new AppFileSamplesAddedEvent(data.samples, file),
+          );
+          break;
+        case "noiseAdded":
+          this.fileNoise.set(file, data.noisePoints);
+          this.eventTarget.dispatchEvent(
+            new AppFileNoiseAddedEvent(data.noisePoints, file),
+          );
+          break;
+        case "analysisComplete":
+          cleanup();
+          this.eventTarget.dispatchEvent(
+            new AppFileAnalysisCompleteEvent(
+              data.samples,
+              data.noisePoints,
+              file,
+            ),
+          );
+          break;
+        case "error":
+          reportError(data.message);
+          break;
+        default: {
+          const unhandled: never = data;
+          throw new Error(`Unknown worker message: ${unhandled}`);
+        }
+      }
+    };
+    const onError = (event: ErrorEvent) => {
+      reportError(event.message || "File worker failed.");
+    };
+    const onMessageError = () => {
+      reportError("Could not read a message from the worker.");
+    };
+
     this.eventTarget.dispatchEvent(
       new AppFileStatusChangeEvent("Reading", file),
     );
+    this.eventTarget.dispatchEvent(new AppFileProgressEvent(0.1, file));
+    fileWorker.addEventListener("message", onMessage);
+    fileWorker.addEventListener("error", onError);
+    fileWorker.addEventListener("messageerror", onMessageError);
 
     try {
-      this.eventTarget.dispatchEvent(new AppFileProgressEvent(0.1, file));
-      const samples = await getSamples(file, (progress) =>
-        this.eventTarget.dispatchEvent(
-          new AppFileProgressEvent(progress * 0.45 + 0.1, file),
-        ),
-      );
-      this.fileSamples.set(file, samples);
-
-      this.eventTarget.dispatchEvent(
-        new AppFileStatusChangeEvent("Analyzing", file),
-      );
-      const noise = await analyzeNoise(file, samples, (progress) =>
-        this.eventTarget.dispatchEvent(
-          new AppFileProgressEvent(progress * 0.45 + 0.55, file),
-        ),
-      );
-      this.fileNoise.set(file, noise);
-      this.eventTarget.dispatchEvent(new AppFileNoiseAddedEvent(noise, file));
-    } catch (err) {
-      this.eventTarget.dispatchEvent(
-        new AppFileErrorEvent(
-          err instanceof Error ? err.message : String(err),
-          file,
-        ),
-      );
+      fileWorker.postMessage({ requestId, file } satisfies FileWorkerRequest);
+    } catch (error) {
+      reportError(error instanceof Error ? error.message : String(error));
     }
   }
 }

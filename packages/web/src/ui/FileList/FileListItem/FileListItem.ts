@@ -1,5 +1,6 @@
 import { NOISE_THRESHOLD } from "../../../analyze";
-import { AppUISelectFileEvent, type AppState } from "../../../appState";
+import type { AppState } from "../../../appState";
+import { AppUISelectFileEvent } from "../../../appStateEvents";
 import { assert } from "../../../assert";
 import type { Sample } from "../../../decode/mjpeg";
 import { encodeMov } from "../../../encode/mov";
