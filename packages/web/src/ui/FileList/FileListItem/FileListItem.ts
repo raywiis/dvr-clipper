@@ -13,10 +13,11 @@ function getNoiselessGroupsFromFile(
   file: File,
 ): Sample[][] {
   const groups = getNoiselessGroupsFromFiles(appState, [file]);
-  return groups.map((sections) => {
+  const samples = groups.map((sections) => {
     assert(sections.length === 1, "Multiple sections from a single file");
     return sections.flatMap((section) => section.samples);
   });
+  return samples
 }
 
 export class FileListItem extends HTMLElement {
