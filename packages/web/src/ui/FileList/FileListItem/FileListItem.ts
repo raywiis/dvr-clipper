@@ -17,7 +17,7 @@ function getNoiselessGroupsFromFile(
     assert(sections.length === 1, "Multiple sections from a single file");
     return sections.flatMap((section) => section.samples);
   });
-  return samples
+  return samples;
 }
 
 export class FileListItem extends HTMLElement {
@@ -31,7 +31,9 @@ export class FileListItem extends HTMLElement {
   }
 
   connectedCallback() {
-    this.#render();
+    if (!this.hasChildNodes()) {
+      this.#render();
+    }
   }
 
   #render() {
@@ -50,11 +52,29 @@ export class FileListItem extends HTMLElement {
     status.className = styles.status!;
     status.textContent = "Queued";
 
+    const controls = document.createElement("div");
+    controls.className = styles.controls!;
+    const moveUpBtn = document.createElement("button");
+    const moveDownBtn = document.createElement("button");
+    for (const [button, direction, label] of [
+      [moveUpBtn, -1, "Move up"],
+      [moveDownBtn, 1, "Move down"],
+    ] as const) {
+      button.type = "button";
+      button.textContent = `${direction === -1 ? "↑" : "↓"} ${label}`;
+      button.setAttribute("aria-label", `${label}: ${this.#file.name}`);
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const index = this.#appState.files.indexOf(this.#file);
+        this.#appState.moveFile(this.#file, index + direction);
+      });
+      controls.append(button);
+    }
     header.append(name, status);
 
     const chart = new NoiseChart();
 
-    item.append(header, chart);
+    item.append(header, controls, chart);
 
     item.draggable = true;
     // TODO: Make this more animated

@@ -54,6 +54,14 @@
   align-self: flex-start;
 }
 
+.controls {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-self: flex-end;
+  gap: 8px;
+}
+
 .name {
   overflow: hidden;
   text-overflow: ellipsis;

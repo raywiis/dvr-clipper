@@ -8,6 +8,10 @@
   display: none;
 }
 
+.sortButton {
+  margin-bottom: 8px;
+}
+
 .list {
   list-style: none;
   margin: 0;

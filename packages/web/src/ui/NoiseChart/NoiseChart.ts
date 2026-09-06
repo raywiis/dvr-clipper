@@ -36,6 +36,9 @@ export class NoiseChart extends HTMLElement {
   }
 
   connectedCallback() {
+    if (this.#chartElement) {
+      return;
+    }
     this.#chartElement = createNoiseChart();
     this.#seekIndicator = createSeekIndicator();
 

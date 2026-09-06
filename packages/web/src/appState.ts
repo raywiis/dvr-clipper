@@ -2,6 +2,12 @@ import { analyzeNoise, type NoisePoint } from "./analyze";
 import type { Sample } from "./decode/mjpeg";
 import { getSamples } from "./decode/getSamples";
 
+class AppUIReorderFilesEvent extends Event {
+  constructor() {
+    super("ui:reorderFiles");
+  }
+}
+
 class AppUIAddFileEvent extends Event {
   file: File;
 
@@ -65,6 +71,7 @@ export class AppFileErrorEvent extends Event {
 }
 
 const eventMap = {
+  "ui:reorderFiles": AppUIReorderFilesEvent,
   "ui:addFile": AppUIAddFileEvent,
   "ui:selectFile": AppUISelectFileEvent,
   "file:statusChange": AppFileStatusChangeEvent,
@@ -103,6 +110,33 @@ export class AppState {
 
   hasFile(file: File) {
     return this.files.some((existingFile) => existingFile.name === file.name);
+  }
+
+  sortFilesByName() {
+    this.files.sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, {
+        numeric: true,
+        sensitivity: "base",
+      }),
+    );
+    this.eventTarget.dispatchEvent(new AppUIReorderFilesEvent());
+  }
+
+  moveFile(file: File, targetIndex: number) {
+    const index = this.files.indexOf(file);
+    if (
+      index < 0 ||
+      !Number.isInteger(targetIndex) ||
+      targetIndex < 0 ||
+      targetIndex >= this.files.length ||
+      targetIndex === index
+    ) {
+      return;
+    }
+
+    this.files.splice(index, 1);
+    this.files.splice(targetIndex, 0, file);
+    this.eventTarget.dispatchEvent(new AppUIReorderFilesEvent());
   }
 
   addEventListener<T extends AppStateEventType>(
