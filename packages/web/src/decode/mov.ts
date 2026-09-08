@@ -3,7 +3,7 @@ import { type AllRegisteredBoxes } from "mp4box";
 import { assert } from "../assert.ts";
 import type { Sample } from "./mjpeg.ts";
 
-export async function getMovSamples(
+export async function getMovSamplesBulk(
   file: File,
   onProgress: (percent: number) => void,
 ): Promise<Sample[]> {
