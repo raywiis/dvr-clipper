@@ -30,6 +30,17 @@ export class AppState {
   files: File[] = [];
   fileSamples: Map<File, Sample[]> = new Map();
   fileNoise: Map<File, NoisePoint[]> = new Map();
+  #pendingFileRequests = new Map<number, File>();
+
+  constructor() {
+    fileWorker.addEventListener("message", this.#handleFileWorkerMessage);
+    fileWorker.addEventListener("error", (event) => {
+      this.#reportAllFileErrors(event.message || "File worker failed.");
+    });
+    fileWorker.addEventListener("messageerror", () => {
+      this.#reportAllFileErrors("Could not read a message from the worker.");
+    });
+  }
 
   addFile(file: File) {
     if (this.hasFile(file)) {
@@ -81,75 +92,76 @@ export class AppState {
 
   #processFile(file: File) {
     const requestId = nextRequestId++;
-    const cleanup = () => {
-      fileWorker.removeEventListener("message", onMessage);
-      fileWorker.removeEventListener("error", onError);
-      fileWorker.removeEventListener("messageerror", onMessageError);
-    };
-    const reportError = (message: string) => {
-      cleanup();
-      this.eventTarget.dispatchEvent(new AppFileErrorEvent(message, file));
-    };
-    const onMessage = ({ data }: MessageEvent<FileWorkerMessage>) => {
-      if (data.requestId !== requestId) return;
-
-      switch (data.type) {
-        case "progress":
-          this.eventTarget.dispatchEvent(
-            new AppFileProgressEvent(data.progress, file),
-          );
-          break;
-        case "statusChange":
-          this.eventTarget.dispatchEvent(
-            new AppFileStatusChangeEvent(data.status, file),
-          );
-          break;
-        case "samplesAdded":
-          this.fileSamples.set(file, data.samples);
-          this.eventTarget.dispatchEvent(
-            new AppFileSamplesAddedEvent(data.samples, file),
-          );
-          break;
-        case "noiseAdded":
-          this.fileNoise.set(file, data.noisePoints);
-          this.eventTarget.dispatchEvent(
-            new AppFileNoiseAddedEvent(data.noisePoints, file),
-          );
-          break;
-        case "analysisComplete":
-          cleanup();
-          this.eventTarget.dispatchEvent(
-            new AppFileAnalysisCompleteEvent(
-              data.samples,
-              data.noisePoints,
-              file,
-            ),
-          );
-          break;
-        case "error":
-          reportError(data.message);
-          break;
-        default: {
-          const unhandled: never = data;
-          throw new Error(`Unknown worker message: ${unhandled}`);
-        }
-      }
-    };
-    const onError = (event: ErrorEvent) => {
-      reportError(event.message || "File worker failed.");
-    };
-    const onMessageError = () => {
-      reportError("Could not read a message from the worker.");
-    };
-
-    fileWorker.addEventListener("message", onMessage);
-    fileWorker.addEventListener("error", onError);
-    fileWorker.addEventListener("messageerror", onMessageError);
+    this.#pendingFileRequests.set(requestId, file);
 
     try {
       fileWorker.postMessage({ requestId, file } satisfies FileWorkerRequest);
     } catch (error) {
-      reportError(error instanceof Error ? error.message : String(error));
+      this.#reportFileError(
+        requestId,
+        error instanceof Error ? error.message : String(error),
+      );
+    }
+  }
+
+  #handleFileWorkerMessage = ({ data }: MessageEvent<FileWorkerMessage>) => {
+    const file = this.#pendingFileRequests.get(data.requestId);
+    if (!file) return;
+
+    switch (data.type) {
+      case "progress":
+        this.eventTarget.dispatchEvent(
+          new AppFileProgressEvent(data.progress, file),
+        );
+        break;
+      case "statusChange":
+        this.eventTarget.dispatchEvent(
+          new AppFileStatusChangeEvent(data.status, file),
+        );
+        break;
+      case "samplesAdded":
+        this.fileSamples.set(file, data.samples);
+        this.eventTarget.dispatchEvent(
+          new AppFileSamplesAddedEvent(data.samples, file),
+        );
+        break;
+      case "noiseAdded":
+        this.fileNoise.set(file, data.noisePoints);
+        this.eventTarget.dispatchEvent(
+          new AppFileNoiseAddedEvent(data.noisePoints, file),
+        );
+        break;
+      case "analysisComplete":
+        this.#pendingFileRequests.delete(data.requestId);
+        this.eventTarget.dispatchEvent(
+          new AppFileAnalysisCompleteEvent(
+            data.samples,
+            data.noisePoints,
+            file,
+          ),
+        );
+        break;
+      case "error":
+        this.#reportFileError(data.requestId, data.message);
+        break;
+      default: {
+        const unhandled: never = data;
+        throw new Error(`Unknown worker message: ${unhandled}`);
+      }
+    }
+  };
+
+  #reportFileError(requestId: number, message: string) {
+    const file = this.#pendingFileRequests.get(requestId);
+    if (!file) return;
+
+    this.#pendingFileRequests.delete(requestId);
+    this.eventTarget.dispatchEvent(new AppFileErrorEvent(message, file));
+  }
+
+  #reportAllFileErrors(message: string) {
+    for (const requestId of [...this.#pendingFileRequests.keys()]) {
+      this.#reportFileError(requestId, message);
     }
   }
 }
