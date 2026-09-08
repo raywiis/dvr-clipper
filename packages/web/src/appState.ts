@@ -17,6 +17,7 @@ import type {
   FileWorkerMessage,
   FileWorkerRequest,
 } from "./fileWorker/messages";
+import { assert } from "./assert";
 
 const fileWorker = new Worker(
   new URL("./fileWorker/fileProcessingWorker.ts", import.meta.url),
@@ -131,12 +132,18 @@ export class AppState {
           new AppFileNoiseAddedEvent(data.noisePoints, file),
         );
         break;
-      case "analysisComplete":
+      case "processingComplete":
+        const requestIdFile = this.#pendingFileRequests.get(data.requestId);
+        assert(requestIdFile, "Invariant. Missing file for request id");
+        const samples = this.fileSamples.get(requestIdFile);
+        const noisePoints = this.fileNoise.get(requestIdFile);
+        assert(samples, "Invariant. Missing samples after processing complete");
+        assert(noisePoints, "Invariant. Missing noise after processing complete");
         this.#pendingFileRequests.delete(data.requestId);
         this.eventTarget.dispatchEvent(
           new AppFileAnalysisCompleteEvent(
-            data.samples,
-            data.noisePoints,
+            samples,
+            noisePoints,
             file,
           ),
         );

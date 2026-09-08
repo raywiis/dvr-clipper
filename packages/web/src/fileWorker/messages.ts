@@ -12,6 +12,6 @@ export type FileWorkerMessage = { requestId: number } & (
   | { type: "samplesAdded"; samples: Sample[] }
   | { type: "statusChange"; status: string }
   | { type: "noiseAdded"; noisePoints: NoisePoint[] }
-  | { type: "analysisComplete"; samples: Sample[]; noisePoints: NoisePoint[] }
+  | { type: "processingComplete" }
   | { type: "error"; message: string }
 );

@@ -35,10 +35,8 @@ const processFile = async ({ file, requestId }: FileWorkerRequest) => {
     );
     postMessage({ type: "noiseAdded", requestId, noisePoints });
     postMessage({
-      type: "analysisComplete",
+      type: "processingComplete",
       requestId,
-      samples,
-      noisePoints,
     });
   } catch (error) {
     postMessage({
