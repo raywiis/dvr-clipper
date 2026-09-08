@@ -37,9 +37,6 @@ export class AppState {
     }
     this.files.push(file);
     this.eventTarget.dispatchEvent(new AppUIAddFileEvent(file));
-    this.eventTarget.dispatchEvent(
-      new AppFileStatusChangeEvent("Queued", file),
-    );
     this.#processFile(file);
   }
 
@@ -145,10 +142,6 @@ export class AppState {
       reportError("Could not read a message from the worker.");
     };
 
-    this.eventTarget.dispatchEvent(
-      new AppFileStatusChangeEvent("Reading", file),
-    );
-    this.eventTarget.dispatchEvent(new AppFileProgressEvent(0.1, file));
     fileWorker.addEventListener("message", onMessage);
     fileWorker.addEventListener("error", onError);
     fileWorker.addEventListener("messageerror", onMessageError);
