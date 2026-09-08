@@ -3,6 +3,67 @@ import { type AllRegisteredBoxes } from "mp4box";
 import { assert } from "../assert.ts";
 import type { Sample } from "./mjpeg.ts";
 
+function getMovSamplesIterator(file: File): AsyncIterator<Sample[], void, void> {
+  const mp4boxFile = mp4box.createFile();
+  const stream = file.stream();
+
+  let sampleResolvers = Promise.withResolvers<Sample[]>()
+
+  const timescaleResolvers = Promise.withResolvers<number>();
+
+  mp4boxFile.onReady = (movie) => {
+    if (!movie.hasMoov) {
+      timescaleResolvers.reject(new Error('mov does not have a mov block'));
+      return;
+    }
+    const moovBox = mp4boxFile.moov;
+    const videoTrak = moovBox.traks.find((trak) => {
+      return trak.mdia.hdlr.handler === "vide";
+    });
+    if (!videoTrak) {
+      timescaleResolvers.reject(new Error('mov does not have a video trak'));
+      return;
+    }
+    const timescale = videoTrak.mdia.mdhd.timescale;
+    timescaleResolvers.resolve(timescale);
+  }
+
+  mp4boxFile.onSamples = (id, user, mp4BoxSamples) => {
+    timescaleResolvers.promise.then(timescale => {
+      const mySamples = mp4BoxSamples.map((s) => ({
+        offset: s.offset,
+        size: s.size,
+        time: s.cts / timescale,
+      }))
+      sampleResolvers.resolve(mySamples);
+    })
+  }
+
+  return {
+    async next() {
+      console.log('nexted')
+      return {
+        value: [],
+        done: false,
+      }
+    },
+    async return() {
+      console.log('returned')
+      return {
+        value: undefined,
+        done: true,
+      }
+    },
+    async throw() {
+      console.log('thrown')
+      return {
+        value: undefined,
+        done: true,
+      }
+    }
+  }
+};
+
 export async function getMovSamplesBulk(
   file: File,
   onProgress: (percent: number) => void,
