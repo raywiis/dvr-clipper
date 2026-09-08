@@ -3,6 +3,11 @@ import { type AllRegisteredBoxes } from "mp4box";
 import { assert } from "../assert.ts";
 import type { Sample } from "./mjpeg.ts";
 
+async function* test(a: number) {
+}
+const ait = test(12);
+ait.return()
+
 function getMovSamplesIterator(file: File): AsyncIterator<Sample[], void, void> {
   const mp4boxFile = mp4box.createFile();
   const stream = file.stream();
@@ -24,6 +29,10 @@ function getMovSamplesIterator(file: File): AsyncIterator<Sample[], void, void> 
       timescaleResolvers.reject(new Error('mov does not have a video trak'));
       return;
     }
+    for(const videoTrack of movie.videoTracks) {
+      mp4boxFile.setExtractionOptions(videoTrack.id, undefined, {nbSamples: 1000})
+    }
+
     const timescale = videoTrak.mdia.mdhd.timescale;
     timescaleResolvers.resolve(timescale);
   }
@@ -36,14 +45,16 @@ function getMovSamplesIterator(file: File): AsyncIterator<Sample[], void, void> 
         time: s.cts / timescale,
       }))
       sampleResolvers.resolve(mySamples);
+      sampleResolvers = Promise.withResolvers();
     })
   }
 
   return {
     async next() {
       console.log('nexted')
+      const samples = await sampleResolvers.promise;
       return {
-        value: [],
+        value: samples,
         done: false,
       }
     },
@@ -76,9 +87,20 @@ export async function getMovSamplesBulk(
   mp4boxFile.onMoovStart = () => {
     console.log("moovstart");
   };
-  mp4boxFile.onReady = () => {
+  mp4boxFile.onReady = (movie) => {
+    console.log('ready', movie)
+
+    for (const track of movie.tracks) {
+      mp4boxFile.unsetExtractionOptions(track.id);
+    }
+    for (const videoTrack of movie.videoTracks) {
+      mp4boxFile.setExtractionOptions(videoTrack.id, undefined, { nbSamples: 1000 });
+    }
     console.log("mp4box ready");
   };
+  mp4boxFile.onSamples = (...args) => {
+    console.info('samples', args)
+  }
   let totalOffset = 0;
   mp4boxFile.start();
   while (true) {
@@ -97,6 +119,7 @@ export async function getMovSamplesBulk(
     );
     totalOffset += chunkBuffer.byteLength;
     nextFilePos = mp4boxFile.appendBuffer(mp4boxBuffer);
+    mp4boxFile.flush();
     assert(nextFilePos !== undefined, "mp4box not ready to parse");
   }
 
