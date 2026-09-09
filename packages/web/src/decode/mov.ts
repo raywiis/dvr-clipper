@@ -70,20 +70,15 @@ export async function getMovSamplesBulk(
   onProgress: (percent: number) => void,
 ): Promise<Sample[]> {
   const mp4boxFile = mp4box.createFile();
-  const stream = file.stream();
-  let totalOffset = 0;
-
   const DEFAULT_SLICE_SIZE = 1024 * 64;
 
-  let ready = false
-  mp4boxFile.onReady = (movie) => {
-    ready = true;
-    console.log('ready', movie, mp4boxFile);
-  }
+  let readChunks = 0;
 
   const getChunk = async (offset: number) => {
     const end = Math.min(offset + DEFAULT_SLICE_SIZE, file.size);
     const blob = file.slice(offset, end);
+    readChunks += blob.size;
+    onProgress(readChunks / file.size);
     assert(blob.size > 0, `Empty read at offset ${offset}`);
     const buffer = await blob.arrayBuffer();
     const mp4boxBuffer = mp4box.MP4BoxBuffer.fromArrayBuffer(
@@ -100,30 +95,16 @@ export async function getMovSamplesBulk(
   while (true) {
     const buffer = await getChunk(nextOffset);
     nextOffset = mp4boxFile.appendBuffer(buffer);
-    console.log({ nextOffset })
-    // const videoTrak = mp4boxFile.moov.traks.find(t => t.mdia.hdlr.handler === 'vide');
-    // if (videoTrak) {
-    //   break;
-    // }
+
+    assert(nextOffset !== undefined, "Next number is missing");
     if (!nextOffset) {
       throw new Error('No next offset')
     }
     if (nextOffset >= file.size) {
-      console.log({ nextOffset, s: file.size })
       break;
     }
-    // assert(nextOffset, "No next offset")
   }
   mp4boxFile.flush();
-  // for await (const chunk of stream) {
-  //   const mp4boxBuffer = mp4box.MP4BoxBuffer.fromArrayBuffer(
-  //     chunk.buffer,
-  //     totalOffset,
-  //   );
-  //   totalOffset += chunk.byteLength;
-  //   mp4boxFile.appendBuffer(mp4boxBuffer);
-  //   onProgress(totalOffset / file.size);
-  // }
   const moovBox = mp4boxFile.moov;
   assert(moovBox, "no moovbox");
 
