@@ -9,33 +9,34 @@ function getMovSamplesIterator(file: File): AsyncIterator<Sample[], void, void> 
 
   let sampleResolvers = Promise.withResolvers<Sample[]>()
 
-  const timescaleResolvers = Promise.withResolvers<number>();
+  const trackDataResolvers = Promise.withResolvers<{timescale: number, videoTrackId: number}>();
 
   mp4boxFile.onReady = (movie) => {
     if (!movie.hasMoov) {
-      timescaleResolvers.reject(new Error('mov does not have a mov block'));
+      trackDataResolvers.reject(new Error('mov does not have a mov block'));
       return;
     }
-    const moovBox = mp4boxFile.moov;
-    const videoTrak = moovBox.traks.find((trak) => {
-      return trak.mdia.hdlr.handler === "vide";
+    const videoTrack = movie.videoTracks.at(0);
+    assert(videoTrack, "Invariant. No video track in movie");
+    trackDataResolvers.resolve({
+      timescale:
+        videoTrack.timescale,
+        videoTrackId: videoTrack.id
     });
-    if (!videoTrak) {
-      timescaleResolvers.reject(new Error('mov does not have a video trak'));
-      return;
-    }
-    const timescale = videoTrak.mdia.mdhd.timescale;
-    timescaleResolvers.resolve(timescale);
   }
 
   mp4boxFile.onSamples = (id, user, mp4BoxSamples) => {
-    timescaleResolvers.promise.then(timescale => {
+    trackDataResolvers.promise.then(td => {
       const mySamples = mp4BoxSamples.map((s) => ({
         offset: s.offset,
         size: s.size,
-        time: s.cts / timescale,
+        time: s.cts / td.timescale,
       }))
       sampleResolvers.resolve(mySamples);
+      const lastSample = mp4BoxSamples.at(-1)
+      if (lastSample) {
+        mp4boxFile.releaseUsedSamples(td.videoTrackId, lastSample.number + 1);
+      }
     })
   }
 
@@ -69,37 +70,42 @@ export async function getMovSamplesBulk(
   onProgress: (percent: number) => void,
 ): Promise<Sample[]> {
   const mp4boxFile = mp4box.createFile();
-  const stream = file.stream();
-  const valueIterator = stream.values();
-  let nextFilePos = 0;
-  let moovBox: AllRegisteredBoxes["moov"] | undefined = undefined;
-  mp4boxFile.onMoovStart = () => {
-    console.log("moovstart");
-  };
-  mp4boxFile.onReady = () => {
-    console.log("mp4box ready");
-  };
-  let totalOffset = 0;
-  mp4boxFile.start();
-  while (true) {
-    const iterationResult = await valueIterator.next();
-    onProgress(totalOffset / file.size);
-    if (iterationResult.done) {
-      mp4boxFile.flush();
-      moovBox = mp4boxFile.moov;
-      break;
-    }
-    const chunkBuffer = iterationResult.value.buffer;
+  const DEFAULT_SLICE_SIZE = 1024 * 64;
 
+  let readChunks = 0;
+
+  const getChunk = async (offset: number) => {
+    const end = Math.min(offset + DEFAULT_SLICE_SIZE, file.size);
+    const blob = file.slice(offset, end);
+    readChunks += blob.size;
+    onProgress(readChunks / file.size);
+    assert(blob.size > 0, `Empty read at offset ${offset}`);
+    const buffer = await blob.arrayBuffer();
     const mp4boxBuffer = mp4box.MP4BoxBuffer.fromArrayBuffer(
-      chunkBuffer,
-      totalOffset,
+      buffer,
+      offset,
     );
-    totalOffset += chunkBuffer.byteLength;
-    nextFilePos = mp4boxFile.appendBuffer(mp4boxBuffer);
-    assert(nextFilePos !== undefined, "mp4box not ready to parse");
+
+    mp4boxBuffer.fileStart = offset;
+    return mp4boxBuffer;
   }
 
+  const initalBuffer = await getChunk(0);
+  let nextOffset = mp4boxFile.appendBuffer(initalBuffer);
+  while (true) {
+    const buffer = await getChunk(nextOffset);
+    nextOffset = mp4boxFile.appendBuffer(buffer);
+
+    assert(nextOffset !== undefined, "Next number is missing");
+    if (!nextOffset) {
+      throw new Error('No next offset')
+    }
+    if (nextOffset >= file.size) {
+      break;
+    }
+  }
+  mp4boxFile.flush();
+  const moovBox = mp4boxFile.moov;
   assert(moovBox, "no moovbox");
 
   const videoTrak = moovBox.traks.find((trak) => {
