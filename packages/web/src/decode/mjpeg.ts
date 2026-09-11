@@ -17,8 +17,8 @@ export async function getArrayBuffer(
   sample: Sample,
 ): Promise<ArrayBuffer> {
   if (sample.offset === null) {
-    const { getMovSampleData } = await import("./mov.ts");
-    return getMovSampleData(file, sample);
+    const { getDemuxedSampleData } = await import("./webDemuxer.ts");
+    return getDemuxedSampleData(file, sample);
   }
 
   const bytes = file.slice(sample.offset, sample.offset + sample.size);
