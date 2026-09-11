@@ -15,7 +15,8 @@
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
-    "mp4box": "^2.3.0"
+    "mp4box": "^2.3.0",
+    "web-demuxer": "^4.0.0"
   },
   "devDependencies": {
     "@storybook/html-vite": "^10.4.6",
