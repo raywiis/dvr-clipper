@@ -290,7 +290,9 @@ export async function getAviSamples(
   }
 
   // Frames must be JPEGs for the shared MJPEG decode path.
-  const soi = await readBytes(file, samples[0]!.offset, 2);
+  const firstSample = samples[0]!;
+  assert(firstSample.offset !== null, "AVI frame is missing its file offset");
+  const soi = await readBytes(file, firstSample.offset, 2);
   assert(
     soi.getUint16(0) === 0xffd8,
     "AVI: first frame is not a JPEG (missing SOI marker)",
