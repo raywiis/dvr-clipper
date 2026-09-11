@@ -25,7 +25,7 @@ export async function getSamples(
       ["ftyp", "moov", "mdat", "free", "wide", "skip"].includes(tag(4)),
       "Unrecognized container: expected an AVI or MOV/MP4 file",
     );
-    const { getMovSamplesBulk: getMovSamples } = await import("./mov.ts");
+    const { getMovSamples } = await import("./mov.ts");
     const samples = await getMovSamples(file, onProgress);
     return samples;
   }
