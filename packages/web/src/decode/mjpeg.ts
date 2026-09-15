@@ -29,8 +29,14 @@ export async function decodeFrame(
   file: File,
   sample: Sample,
 ): Promise<DecodedFrame> {
-  const bytes = await getArrayBuffer(file, sample);
-  const blob = new Blob([bytes], { type: "image/jpeg" });
-  const bitmap = await createImageBitmap(blob);
-  return { time: sample.time, bitmap };
+  try {
+    const bytes = await getArrayBuffer(file, sample);
+    const blob = new Blob([bytes], { type: "image/jpeg" });
+    const bitmap = await createImageBitmap(blob);
+    return { time: sample.time, bitmap };
+  } catch (err) {
+    const bytes = await getArrayBuffer(file, sample);
+    console.error('decode frame err', err, bytes);
+    throw new Error('could not decode frame', {cause: err})
+  }
 }
