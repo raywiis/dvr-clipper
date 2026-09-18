@@ -1,120 +1,86 @@
-import * as mp4box from "mp4box";
-import { type AllRegisteredBoxes } from "mp4box";
+import { ALL_FORMATS, BlobSource, EncodedPacketSink, Input } from "mediabunny";
 import { assert } from "../assert.ts";
 import type { Sample } from "./mjpeg.ts";
 
-function getMovSamplesIterator(file: File): AsyncIterator<Sample[], void, void> {
-  const mp4boxFile = mp4box.createFile();
-  const stream = file.stream();
-
-  let sampleResolvers = Promise.withResolvers<Sample[]>()
-
-  const timescaleResolvers = Promise.withResolvers<number>();
-
-  mp4boxFile.onReady = (movie) => {
-    if (!movie.hasMoov) {
-      timescaleResolvers.reject(new Error('mov does not have a mov block'));
-      return;
-    }
-    const moovBox = mp4boxFile.moov;
-    const videoTrak = moovBox.traks.find((trak) => {
-      return trak.mdia.hdlr.handler === "vide";
-    });
-    if (!videoTrak) {
-      timescaleResolvers.reject(new Error('mov does not have a video trak'));
-      return;
-    }
-    const timescale = videoTrak.mdia.mdhd.timescale;
-    timescaleResolvers.resolve(timescale);
-  }
-
-  mp4boxFile.onSamples = (id, user, mp4BoxSamples) => {
-    timescaleResolvers.promise.then(timescale => {
-      const mySamples = mp4BoxSamples.map((s) => ({
-        offset: s.offset,
-        size: s.size,
-        time: s.cts / timescale,
-      }))
-      sampleResolvers.resolve(mySamples);
-    })
-  }
-
-  return {
-    async next() {
-      console.log('nexted')
-      return {
-        value: [],
-        done: false,
-      }
-    },
-    async return() {
-      console.log('returned')
-      return {
-        value: undefined,
-        done: true,
-      }
-    },
-    async throw() {
-      console.log('thrown')
-      return {
-        value: undefined,
-        done: true,
-      }
-    }
-  }
+const SUPPORTED_MJPEG_CODECS = new Set(["jpeg", "mjpg", "mjpa", "mjpb"]);
+type MovReader = {
+  duration: number;
+  sink: EncodedPacketSink;
 };
 
-export async function getMovSamplesBulk(
+const readers = new WeakMap<File, Promise<MovReader>>();
+
+async function createMovReader(file: File): Promise<MovReader> {
+  const input = new Input({
+    formats: ALL_FORMATS,
+    source: new BlobSource(file, {
+      maxCacheSize: 8 * 1024 * 1024,
+      useStreamReader: true,
+    }),
+  });
+
+  const track = await input.getPrimaryVideoTrack();
+  assert(track, "MOV does not contain a video track");
+
+  const codec = await track.getInternalCodecId();
+  assert(
+    typeof codec === "string" &&
+      SUPPORTED_MJPEG_CODECS.has(codec.toLowerCase()),
+    `Unsupported MOV video codec: ${String(codec)}`,
+  );
+
+  return {
+    duration: (await track.getDurationFromMetadata()) ?? 0,
+    sink: new EncodedPacketSink(track),
+  };
+}
+
+function getMovReader(file: File): Promise<MovReader> {
+  let reader = readers.get(file);
+  if (!reader) {
+    reader = createMovReader(file);
+    readers.set(file, reader);
+  }
+  return reader;
+}
+
+export async function getMovSamples(
   file: File,
   onProgress: (percent: number) => void,
 ): Promise<Sample[]> {
-  const mp4boxFile = mp4box.createFile();
-  const stream = file.stream();
-  const valueIterator = stream.values();
-  let nextFilePos = 0;
-  let moovBox: AllRegisteredBoxes["moov"] | undefined = undefined;
-  mp4boxFile.onMoovStart = () => {
-    console.log("moovstart");
-  };
-  mp4boxFile.onReady = () => {
-    console.log("mp4box ready");
-  };
-  let totalOffset = 0;
-  mp4boxFile.start();
-  while (true) {
-    const iterationResult = await valueIterator.next();
-    onProgress(totalOffset / file.size);
-    if (iterationResult.done) {
-      mp4boxFile.flush();
-      moovBox = mp4boxFile.moov;
-      break;
-    }
-    const chunkBuffer = iterationResult.value.buffer;
+  const { duration, sink } = await getMovReader(file);
+  const samples: Sample[] = [];
 
-    const mp4boxBuffer = mp4box.MP4BoxBuffer.fromArrayBuffer(
-      chunkBuffer,
-      totalOffset,
-    );
-    totalOffset += chunkBuffer.byteLength;
-    nextFilePos = mp4boxFile.appendBuffer(mp4boxBuffer);
-    assert(nextFilePos !== undefined, "mp4box not ready to parse");
+  for await (const packet of sink.packets(undefined, undefined, {
+    metadataOnly: true,
+  })) {
+    samples.push({
+      offset: null,
+      size: packet.byteLength,
+      time: packet.timestamp,
+    });
+
+    if (duration > 0) {
+      onProgress(Math.min(1, (packet.timestamp + packet.duration) / duration));
+    }
   }
 
-  assert(moovBox, "no moovbox");
+  assert(samples.length > 0, "MOV does not contain any video frames");
+  onProgress(1);
+  return samples;
+}
 
-  const videoTrak = moovBox.traks.find((trak) => {
-    return trak.mdia.hdlr.handler === "vide";
-  });
-  assert(videoTrak, "No video track found");
-  const timescale = videoTrak.mdia.mdhd.timescale;
+export async function getMovSampleData(
+  file: File,
+  sample: Sample,
+): Promise<ArrayBuffer> {
+  const { sink } = await getMovReader(file);
+  const packet = await sink.getPacket(sample.time);
+  assert(packet, `Missing MOV frame at ${sample.time} seconds`);
+  assert(
+    packet.byteLength === sample.size,
+    `MOV frame size changed at ${sample.time} seconds`,
+  );
 
-  const newSamples: Sample[] = videoTrak.samples.map((sample) => {
-    return {
-      offset: sample.offset,
-      size: sample.size,
-      time: sample.cts / timescale,
-    };
-  });
-
-  return newSamples;
+  return packet.data.slice().buffer;
 }
