@@ -1,6 +1,6 @@
 import { analyzeNoise } from "../analyze";
 import { assert } from "../assert";
-import { getSamples } from "../decode/getSamples";
+import { streamSamples } from "../decode/getSamples";
 import type { FileWorkerMessage, FileWorkerRequest } from "./messages";
 
 const postMessage = (message: FileWorkerMessage) => {
@@ -26,15 +26,11 @@ const processFile = async ({ file, requestId }: FileWorkerRequest) => {
       progress: PROGRESS_RATIOS.QUEUEING,
     });
 
-    const samples = await getSamples(file, (progress) =>
-      postMessage({
-        type: "progress",
-        requestId,
-        progress:
-          progress * PROGRESS_RATIOS.SAMPLE_PROCESSING +
-          PROGRESS_RATIOS.QUEUEING,
-      }),
-    );
+    const samples = [];
+    const sampleStream = streamSamples(file);
+    for await (const sample of sampleStream) {
+      samples.push(sample);
+    }
     postMessage({ type: "samplesAdded", requestId, samples });
     postMessage({ type: "statusChange", requestId, status: "Analyzing" });
 

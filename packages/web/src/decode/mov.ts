@@ -64,26 +64,6 @@ export async function* streamMovSamples(file: File) {
   }
 }
 
-export async function getMovSamples(
-  file: File,
-  onProgress: (percent: number) => void,
-): Promise<Sample[]> {
-  const { duration } = await getMovReader(file);
-  const samples: Sample[] = [];
-
-  for await (const sample of streamMovSamples(file)) {
-    samples.push(sample);
-
-    if (duration > 0) {
-      onProgress(Math.min(1, sample.time / duration));
-    }
-  }
-
-  assert(samples.length > 0, "MOV does not contain any video frames");
-  onProgress(1);
-  return samples;
-}
-
 export async function getMovSampleData(
   file: File,
   sample: Sample,
