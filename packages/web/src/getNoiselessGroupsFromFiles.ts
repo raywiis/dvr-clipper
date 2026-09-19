@@ -68,7 +68,11 @@ export function getNoiselessGroupsFromFiles(appState: AppState, files: File[]) {
       if (noisePoint.value.time < sample.time) {
         noisePoint = noiseIterator.next();
       }
-      assert(!noisePoint.done, "Abrupt noise end");
+      if (noisePoint.done) {
+        iteratorState = { recording: false };
+        console.warn("Abrupt noise end")
+        break;
+      }
     }
   }
 

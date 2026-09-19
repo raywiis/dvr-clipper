@@ -5,9 +5,11 @@ import { PlayButton } from "./player/PlayButton";
 import { Player } from "./player/Player";
 import { ScrubTimeline } from "./player/ScrubTimeline";
 import { VideoFrameCanvas } from "./player/VideoFrameCanvas";
+import { SampleTimeline } from "./SampleTimeline/SampleTimeline";
 
 export function registerCustomElements() {
   window.customElements.define("noise-chart", NoiseChart);
+  window.customElements.define("sample-timeline", SampleTimeline);
   window.customElements.define("play-button", PlayButton);
   window.customElements.define("scrub-timeline", ScrubTimeline);
   window.customElements.define("video-frame-canvas", VideoFrameCanvas);

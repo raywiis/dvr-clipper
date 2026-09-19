@@ -1,17 +1,21 @@
 import { type NoisePoint } from "../../analyze";
+import type { AppState } from "../../appState";
 import { type Sample } from "../../decode/mjpeg";
 import {
   NOISE_CHART_SEEK_EVENT,
   NoiseChart,
   type NoiseChartSeekEvent,
 } from "../NoiseChart/NoiseChart";
+import { SampleTimeline } from "../SampleTimeline/SampleTimeline";
 import { PlayButton } from "./PlayButton";
 import { ScrubTimeline } from "./ScrubTimeline";
 import { VideoFrameCanvas } from "./VideoFrameCanvas";
 import styles from "./player.module.css";
 
 export class Player extends HTMLElement {
+  #appState: AppState | null = null;
   #frameCanvas: VideoFrameCanvas | null = null;
+  #sampleTimeline: SampleTimeline | null = null;
   #timeline: ScrubTimeline | null = null;
   #noise: NoiseChart | null = null;
   #playButton: PlayButton | null = null;
@@ -26,10 +30,17 @@ export class Player extends HTMLElement {
     this.#stopActivePlayback();
   }
 
+  configure(appState: AppState) {
+    this.#appState = appState;
+    this.#render().sampleTimeline.configure(appState);
+  }
+
   async load(file: File, samples: Sample[], noise: NoisePoint[]) {
-    const { frameCanvas, timeline, playButton, noiseChart } = this.#render();
+    const { frameCanvas, sampleTimeline, timeline, playButton, noiseChart } =
+      this.#render();
 
     const playbackId = this.#startPlayback();
+    sampleTimeline.setFile(file);
     noiseChart.setNoisePoints(noise);
 
     await frameCanvas.configure(file, samples);
@@ -153,12 +164,14 @@ export class Player extends HTMLElement {
 
     if (
       this.#frameCanvas &&
+      this.#sampleTimeline &&
       this.#timeline &&
       this.#noise &&
       this.#playButton
     ) {
       return {
         frameCanvas: this.#frameCanvas,
+        sampleTimeline: this.#sampleTimeline,
         timeline: this.#timeline,
         noiseChart: this.#noise,
         playButton: this.#playButton,
@@ -174,6 +187,11 @@ export class Player extends HTMLElement {
     const timelineWrapper = document.createElement("div");
     timelineWrapper.className = styles.timeline!;
 
+    const sampleTimeline = new SampleTimeline();
+    if (this.#appState) {
+      sampleTimeline.configure(this.#appState);
+    }
+
     const noiseChart = new NoiseChart();
     noiseChart.className = styles.timelineNoise!;
 
@@ -185,14 +203,15 @@ export class Player extends HTMLElement {
     playButton.className = styles.playButton!;
     controls.append(playButton);
 
-    timelineWrapper.append(noiseChart, timeline, controls);
+    timelineWrapper.append(sampleTimeline, noiseChart, timeline, controls);
     this.append(stage, timelineWrapper);
 
     this.#frameCanvas = frameCanvas;
+    this.#sampleTimeline = sampleTimeline;
     this.#timeline = timeline;
     this.#noise = noiseChart;
     this.#playButton = playButton;
 
-    return { frameCanvas, timeline, noiseChart, playButton };
+    return { frameCanvas, sampleTimeline, timeline, noiseChart, playButton };
   }
 }

@@ -29,12 +29,13 @@ async function handleFiles(newFiles: FileList) {
 }
 
 fileList.configure(state);
+player.configure(state);
 
 state.addEventListener("ui:selectFile", (event) => {
   const { file } = event;
   const samples = state.fileSamples.get(file);
-  if (!samples) return;
-  const noise = state.fileNoise.get(file) ?? [];
+  const noise = state.fileNoise.get(file);
+  if (!samples || !noise) return;
   void player.load(file, samples, noise);
 });
 
