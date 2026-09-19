@@ -28,8 +28,13 @@ const processFile = async ({ file, requestId }: FileWorkerRequest) => {
 
     const samples = [];
     const sampleStream = streamSamples(file);
-    for await (const sample of sampleStream) {
+    for await (const { sample, progress } of sampleStream) {
       samples.push(sample);
+      postMessage({
+        type: "progress",
+        requestId,
+        progress: progress * PROGRESS_RATIOS.SAMPLE_PROCESSING + PROGRESS_RATIOS.QUEUEING,
+      });
     }
     postMessage({ type: "samplesAdded", requestId, samples });
     postMessage({ type: "statusChange", requestId, status: "Analyzing" });

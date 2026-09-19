@@ -50,7 +50,7 @@ function getMovReader(file: File): Promise<MovReader> {
 }
 
 export async function* streamMovSamples(file: File) {
-  const { sink } = await getMovReader(file);
+  const { duration, sink } = await getMovReader(file);
   for await (const packet of sink.packets(undefined, undefined, {
     metadataOnly: true,
   })) {
@@ -59,8 +59,7 @@ export async function* streamMovSamples(file: File) {
       size: packet.byteLength,
       time: packet.timestamp,
     };
-
-    yield sample;
+    yield { sample, progress: 1 };
   }
 }
 

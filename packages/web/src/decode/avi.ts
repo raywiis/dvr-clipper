@@ -198,7 +198,7 @@ async function* streamFromIndex(
       break;
     }
     const sample = { offset: dataOffset, size, time };
-    yield sample;
+    yield { sample, progress: dataOffset / file.size };
   }
 }
 
@@ -217,12 +217,13 @@ async function* streamFromMoviScan(
     }
     if (isVideoChunk(id, video.chunkPrefix)) {
       if (size > 0) {
+        const offset = pos + 8;
         const sample = {
-          offset: pos + 8,
+          offset,
           size,
           time: frame * video.frameDuration,
         };
-        yield sample;
+        yield { sample, progress: offset / file.size };
       }
       frame++;
     }
