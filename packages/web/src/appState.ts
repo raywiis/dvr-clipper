@@ -138,14 +138,13 @@ export class AppState {
         const samples = this.fileSamples.get(requestIdFile);
         const noisePoints = this.fileNoise.get(requestIdFile);
         assert(samples, "Invariant. Missing samples after processing complete");
-        assert(noisePoints, "Invariant. Missing noise after processing complete");
+        assert(
+          noisePoints,
+          "Invariant. Missing noise after processing complete",
+        );
         this.#pendingFileRequests.delete(data.requestId);
         this.eventTarget.dispatchEvent(
-          new AppFileAnalysisCompleteEvent(
-            samples,
-            noisePoints,
-            file,
-          ),
+          new AppFileAnalysisCompleteEvent(samples, noisePoints, file),
         );
         break;
       case "error":

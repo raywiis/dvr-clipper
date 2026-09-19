@@ -44,14 +44,14 @@ export async function analyzeNoise(
   for (let i = 0; i < count; i++) {
     const index =
       count === 1 ? 0 : Math.round((i / (count - 1)) * (samples.length - 1));
-      const sampleInQuestion = samples[index];
+    const sampleInQuestion = samples[index];
     assert(sampleInQuestion, "No sample in question");
     try {
       const { bitmap, time } = await decodeFrame(file, sampleInQuestion);
       points.push({ time, score: scoreFrame(ctx, canvas, bitmap) });
       bitmap.close();
     } catch (err) {
-      console.error('failed to decode', { err, sampleInQuestion });
+      console.error("failed to decode", { err, sampleInQuestion });
     }
     onProgress((i + 1) / count, count);
   }

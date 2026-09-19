@@ -11,7 +11,7 @@ const PROGRESS_RATIOS = {
   QUEUEING: 0.1,
   SAMPLE_PROCESSING: 0.45,
   NOISE_PROCESSING: 0.45,
-} as const
+} as const;
 
 const queue: FileWorkerRequest[] = [];
 
@@ -20,13 +20,19 @@ const processFile = async ({ file, requestId }: FileWorkerRequest) => {
     assert(file instanceof File, "Invariant. Worker instance isn't a file");
 
     postMessage({ type: "statusChange", requestId, status: "Reading" });
-    postMessage({ type: "progress", requestId, progress: PROGRESS_RATIOS.QUEUEING });
+    postMessage({
+      type: "progress",
+      requestId,
+      progress: PROGRESS_RATIOS.QUEUEING,
+    });
 
     const samples = await getSamples(file, (progress) =>
       postMessage({
         type: "progress",
         requestId,
-        progress: progress * PROGRESS_RATIOS.SAMPLE_PROCESSING + PROGRESS_RATIOS.QUEUEING,
+        progress:
+          progress * PROGRESS_RATIOS.SAMPLE_PROCESSING +
+          PROGRESS_RATIOS.QUEUEING,
       }),
     );
     postMessage({ type: "samplesAdded", requestId, samples });
@@ -36,7 +42,10 @@ const processFile = async ({ file, requestId }: FileWorkerRequest) => {
       postMessage({
         type: "progress",
         requestId,
-        progress: progress * PROGRESS_RATIOS.NOISE_PROCESSING + PROGRESS_RATIOS.SAMPLE_PROCESSING + PROGRESS_RATIOS.QUEUEING,
+        progress:
+          progress * PROGRESS_RATIOS.NOISE_PROCESSING +
+          PROGRESS_RATIOS.SAMPLE_PROCESSING +
+          PROGRESS_RATIOS.QUEUEING,
       }),
     );
     postMessage({ type: "noiseAdded", requestId, noisePoints });
