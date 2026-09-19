@@ -4,7 +4,6 @@ import type { Sample } from "./mjpeg.ts";
 
 const SUPPORTED_MJPEG_CODECS = new Set(["jpeg", "mjpg", "mjpa", "mjpb"]);
 type MovReader = {
-  duration: number;
   sink: EncodedPacketSink;
 };
 
@@ -29,15 +28,9 @@ async function createMovReader(file: File): Promise<MovReader> {
     `Unsupported MOV video codec: ${String(codec)}`,
   );
 
-  const metadataDuration = await track.getDurationFromMetadata();
-  const duration =
-    metadataDuration ?? (await track.computeDuration({ skipLiveWait: true }));
   const sink = new EncodedPacketSink(track);
 
-  return {
-    duration,
-    sink,
-  };
+  return { sink };
 }
 
 function getMovReader(file: File): Promise<MovReader> {
@@ -50,7 +43,7 @@ function getMovReader(file: File): Promise<MovReader> {
 }
 
 export async function* streamMovSamples(file: File) {
-  const { duration, sink } = await getMovReader(file);
+  const { sink } = await getMovReader(file);
   for await (const packet of sink.packets(undefined, undefined, {
     metadataOnly: true,
   })) {
@@ -59,7 +52,7 @@ export async function* streamMovSamples(file: File) {
       size: packet.byteLength,
       time: packet.timestamp,
     };
-    yield { sample, progress: 1 };
+    yield { sample, progress: 0.5 };
   }
 }
 
