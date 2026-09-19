@@ -29,9 +29,13 @@ async function createMovReader(file: File): Promise<MovReader> {
     `Unsupported MOV video codec: ${String(codec)}`,
   );
 
+  const metadataDuration = await track.getDurationFromMetadata();
+  const duration = metadataDuration ?? await track.computeDuration({ skipLiveWait: true });
+  const sink = new EncodedPacketSink(track);
+
   return {
-    duration: (await track.getDurationFromMetadata()) ?? 0,
-    sink: new EncodedPacketSink(track),
+    duration,
+    sink,
   };
 }
 
@@ -44,24 +48,31 @@ function getMovReader(file: File): Promise<MovReader> {
   return reader;
 }
 
+export async function *streamMovSamples(file: File) {
+  const { sink } = await getMovReader(file);
+  for await (const packet of sink.packets(undefined, undefined, { metadataOnly: true })) {
+    const sample = {
+      offset: null,
+      size: packet.byteLength,
+      time: packet.timestamp,
+    }
+
+    yield sample;
+  }
+}
+
 export async function getMovSamples(
   file: File,
   onProgress: (percent: number) => void,
 ): Promise<Sample[]> {
-  const { duration, sink } = await getMovReader(file);
+  const { duration } = await getMovReader(file);
   const samples: Sample[] = [];
 
-  for await (const packet of sink.packets(undefined, undefined, {
-    metadataOnly: true,
-  })) {
-    samples.push({
-      offset: null,
-      size: packet.byteLength,
-      time: packet.timestamp,
-    });
+  for await (const sample of streamMovSamples(file)) {
+    samples.push(sample);
 
     if (duration > 0) {
-      onProgress(Math.min(1, (packet.timestamp + packet.duration) / duration));
+      onProgress(Math.min(1, sample.time / duration));
     }
   }
 
