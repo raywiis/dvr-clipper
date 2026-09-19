@@ -8,27 +8,31 @@
   </head>
 
   <body>
-    <video-player></video-player>
+    <main class="main-content">
+      <video-player></video-player>
 
-    <file-list class="filelist"></file-list>
+      <button id="extract-all-clips" type="button" class="extract-all">
+        Extract clips from all videos
+      </button>
+    </main>
 
-    <button id="extract-all-clips" type="button" class="extract-all">
-      Extract clips from all videos
-    </button>
+    <aside class="sidebar">
+      <file-list class="filelist"></file-list>
 
-    <div class="dropzone">
-      <div>Drop your DVR footage here</div>
-      <div class="dropzone-hint">
-        or click to browse &middot; .avi, .mov, .mp4
+      <div class="dropzone">
+        <div>Drop your DVR footage here</div>
+        <div class="dropzone-hint">
+          or click to browse &middot; .avi, .mov, .mp4
+        </div>
+        <div class="dropzone-error" id="dropzone-error"></div>
+        <input
+          type="file"
+          name="dropzone"
+          accept=".avi,.mov,.mp4,video/*"
+          multiple
+        />
       </div>
-      <div class="dropzone-error" id="dropzone-error"></div>
-      <input
-        type="file"
-        name="dropzone"
-        accept=".avi,.mov,.mp4,video/*"
-        multiple
-      />
-    </div>
+    </aside>
 
     <script src="./index.ts" type="module"></script>
   </body>

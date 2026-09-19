@@ -7,16 +7,38 @@
 
 body {
   margin: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) minmax(0, 720px);
+  grid-template-areas: "sidebar main";
+  align-items: start;
   justify-content: center;
   gap: 24px;
+  min-height: 100vh;
   box-sizing: border-box;
   font-family: sans-serif;
   color: var(--text);
   background: #f6f7f9;
-  padding: 12px;
+  padding: 24px;
+}
+
+.main-content,
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.main-content {
+  grid-area: main;
+}
+
+.sidebar {
+  grid-area: sidebar;
+  position: sticky;
+  top: 24px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
 }
 
 .extract-all {
@@ -77,4 +99,20 @@ body {
   height: 100%;
   opacity: 0;
   cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  body {
+    grid-template-columns: minmax(0, 720px);
+    grid-template-areas:
+      "main"
+      "sidebar";
+    padding: 12px;
+  }
+
+  .sidebar {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+  }
 }
