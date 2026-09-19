@@ -173,14 +173,12 @@ async function resolveIndexBase(
   throw new Error("AVI: idx1 index offsets do not point at chunk headers");
 }
 
-/** Builds samples from the idx1 index: 16-byte entries of id/flags/offset/size. */
-async function samplesFromIndex(
+async function* streamFromIndex(
   file: File,
   idx1: DataView,
   moviStart: number,
   video: VideoStream,
-): Promise<Sample[]> {
-  const samples: Sample[] = [];
+) {
   let base: number | undefined;
   let frame = 0;
   for (let pos = 0; pos + 16 <= idx1.byteLength; pos += 16) {
@@ -199,18 +197,16 @@ async function samplesFromIndex(
       );
       break;
     }
-    samples.push({ offset: dataOffset, size, time });
+    const sample = { offset: dataOffset, size, time };
+    yield sample;
   }
-  return samples;
 }
 
-/** Fallback for files without an idx1 index: walk the movi list chunk by chunk. */
-async function samplesFromMoviScan(
+async function* streamFromMoviScan(
   file: File,
   movi: { start: number; end: number },
   video: VideoStream,
-): Promise<Sample[]> {
-  const samples: Sample[] = [];
+) {
   let frame = 0;
   let pos = movi.start + 4; // skip the 'movi' fourcc itself
   while (pos + 8 <= movi.end) {
@@ -220,17 +216,61 @@ async function samplesFromMoviScan(
       continue;
     }
     if (isVideoChunk(id, video.chunkPrefix)) {
-      if (size > 0)
-        samples.push({
+      if (size > 0) {
+        const sample = {
           offset: pos + 8,
           size,
           time: frame * video.frameDuration,
-        });
+        };
+        yield sample;
+      }
       frame++;
     }
     pos += chunkSpan(size);
   }
-  return samples;
+}
+
+export async function* streamAviSamples(file: File) {
+  const riff = await readBytes(file, 0, 12);
+  assert(
+    fourcc(riff, 0) === "RIFF" && fourcc(riff, 8) === "AVI ",
+    "AVI: missing RIFF/AVI signature",
+  );
+  const riffSize = riff.getUint32(4, true);
+  if (8 + riffSize > file.size) {
+    console.warn("AVI: RIFF size exceeds file size, file looks truncated");
+  }
+  if (file.size > 8 + riffSize + 24) {
+    console.warn(
+      "AVI: extra data after first RIFF segment (OpenDML AVIX?), only the first segment will play",
+    );
+  }
+
+  // Walk the top-level chunks to locate the header list, movi list and index.
+  const riffEnd = Math.min(8 + riffSize, file.size);
+  let video: VideoStream | undefined;
+  let movi: { start: number; end: number } | undefined;
+  let idx1: DataView | undefined;
+
+  let pos = 12;
+  while (pos + 8 <= riffEnd) {
+    const chunk = await readChunkHeader(file, pos, riffEnd);
+    if (chunk.listType === "hdrl") {
+      video = parseHdrl(await readBytes(file, pos + 12, chunk.size - 4));
+    } else if (chunk.listType === "movi") {
+      movi = { start: pos + 8, end: Math.min(pos + 8 + chunk.size, file.size) };
+    } else if (chunk.id === "idx1") {
+      idx1 = await readBytes(file, pos + 8, chunk.size);
+    }
+    pos += chunkSpan(chunk.size);
+  }
+
+  assert(video, "AVI: no hdrl header list found");
+  assert(movi, "AVI: no movi list found");
+
+  const sampleStream = idx1
+    ? streamFromIndex(file, idx1, movi.start, video)
+    : streamFromMoviScan(file, movi, video);
 }
 
 export async function getAviSamples(
@@ -275,9 +315,14 @@ export async function getAviSamples(
   assert(video, "AVI: no hdrl header list found");
   assert(movi, "AVI: no movi list found");
 
-  const samples = idx1
-    ? await samplesFromIndex(file, idx1, movi.start, video)
-    : await samplesFromMoviScan(file, movi, video);
+  const sampleStream = idx1
+    ? streamFromIndex(file, idx1, movi.start, video)
+    : streamFromMoviScan(file, movi, video);
+
+  const samples = [];
+  for await (const sample of sampleStream) {
+    samples.push(sample);
+  }
 
   assert(samples.length > 0, "AVI: no video frames found");
   if (

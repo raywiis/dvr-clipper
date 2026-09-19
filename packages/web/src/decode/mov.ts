@@ -30,7 +30,8 @@ async function createMovReader(file: File): Promise<MovReader> {
   );
 
   const metadataDuration = await track.getDurationFromMetadata();
-  const duration = metadataDuration ?? await track.computeDuration({ skipLiveWait: true });
+  const duration =
+    metadataDuration ?? (await track.computeDuration({ skipLiveWait: true }));
   const sink = new EncodedPacketSink(track);
 
   return {
@@ -48,14 +49,16 @@ function getMovReader(file: File): Promise<MovReader> {
   return reader;
 }
 
-export async function *streamMovSamples(file: File) {
+export async function* streamMovSamples(file: File) {
   const { sink } = await getMovReader(file);
-  for await (const packet of sink.packets(undefined, undefined, { metadataOnly: true })) {
+  for await (const packet of sink.packets(undefined, undefined, {
+    metadataOnly: true,
+  })) {
     const sample = {
       offset: null,
       size: packet.byteLength,
       time: packet.timestamp,
-    }
+    };
 
     yield sample;
   }
