@@ -23,13 +23,12 @@ export function getNoiselessGroupsFromFiles(appState: AppState, files: File[]) {
     recording: false,
   };
 
-  const firstInput = inputs.at(0);
-  assert(firstInput, "No first input");
+  assert(inputs.length > 0, "No inputs");
 
   for (const input of inputs) {
-    const noiseIterator = firstInput.noise[Symbol.iterator]();
+    const noiseIterator = input.noise[Symbol.iterator]();
     let noisePoint = noiseIterator.next();
-    assert(!noisePoint.done, "No noise in the first iterator");
+    assert(!noisePoint.done, "No noise in input");
 
     if (iteratorState.recording) {
       const lastSection = groups.at(-1);
@@ -71,7 +70,7 @@ export function getNoiselessGroupsFromFiles(appState: AppState, files: File[]) {
       }
       if (noisePoint.done) {
         iteratorState = { recording: false };
-        console.warn("Abrupt noise end")
+        console.warn("Abrupt noise end");
         break;
       }
     }
