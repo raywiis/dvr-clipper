@@ -1,0 +1,62 @@
+.host {
+  position: sticky;
+  z-index: 2;
+  bottom: 0;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #cbd5f5;
+  border-radius: 8px;
+  background: #f1f4ff;
+}
+
+.dialog {
+  width: min(440px, calc(100vw - 32px));
+  padding: 20px;
+  border: 1px solid var(--border);
+  color: var(--text);
+  background: #fff;
+}
+
+.dialogHeader {
+  margin-bottom: 18px;
+}
+
+.dialogTitle {
+  margin: 0;
+  font-size: 18px;
+}
+
+.description {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 20px;
+  margin: 0 0 18px;
+  padding: 0;
+  font-size: 14px;
+}
+
+.stats dt {
+  color: var(--muted);
+}
+
+.stats dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}

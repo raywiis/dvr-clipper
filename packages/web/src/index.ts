@@ -1,7 +1,11 @@
 import { AppState } from "./appState";
 import { select } from "./dom";
 import { encodeMov } from "./encode/mov";
-import { getNoiselessGroupsFromFiles } from "./getNoiselessGroupsFromFiles";
+import {
+  EXPORT_VIDEOS_REQUEST_EVENT,
+  ExportedVideos,
+  ExportVideosRequestEvent,
+} from "./ui/ExportedVideos/ExportedVideos";
 import { FileList as FileListElement } from "./ui/FileList/FileList/FileList";
 import { Player } from "./ui/player/Player";
 import { registerCustomElements } from "./ui/register";
@@ -12,6 +16,7 @@ const fileInput = select('.dropzone input[type="file"]', HTMLInputElement);
 const errorLabel = select("#dropzone-error", HTMLElement);
 const player = select("video-player", Player);
 const fileList = select(".filelist", FileListElement);
+const exportedVideos = select("exported-videos", ExportedVideos);
 
 const state = new AppState();
 
@@ -29,6 +34,7 @@ async function handleFiles(newFiles: FileList) {
 }
 
 fileList.configure(state);
+exportedVideos.configure(state);
 player.configure(state);
 
 state.addEventListener("ui:selectFile", (event) => {
@@ -45,22 +51,26 @@ fileInput.addEventListener("input", () => {
   }
 });
 
-const extractAllBtn = select("#extract-all-clips", HTMLButtonElement);
-extractAllBtn.addEventListener("click", () => {
-  const readyFiles = state.files.filter(
+exportedVideos.addEventListener(EXPORT_VIDEOS_REQUEST_EVENT, (event) => {
+  if (!(event instanceof ExportVideosRequestEvent)) {
+    return;
+  }
+  const everythingIsProcessed = state.files.every(
     (file) => state.fileSamples.has(file) && state.fileNoise.has(file),
   );
-  if (readyFiles.length === 0) {
-    errorLabel.textContent = "No analyzed videos to process";
+  if (state.files.length === 0 || !everythingIsProcessed) {
+    errorLabel.textContent = "Wait for every video in the batch to finish";
     return;
   }
   errorLabel.textContent = "";
 
-  const groups = getNoiselessGroupsFromFiles(state, readyFiles);
-  groups.forEach((group, index) => {
+  event.detail.groups.forEach((group, index) => {
+    const now = new Date();
+    const isoString = now.toISOString();
+    const prefix = isoString.split('T').at(0);
     encodeMov(group)
       .then((file) => {
-        file.save(`combined-clip-${index + 1}.mov`);
+        file.save(`${prefix}_${index + 1}.mov`);
       })
       .catch((err) => {
         console.error("Failed to reencode", err);

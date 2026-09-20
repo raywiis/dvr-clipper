@@ -1,3 +1,4 @@
+import { ExportedVideos } from "./ExportedVideos/ExportedVideos";
 import { FileList } from "./FileList/FileList/FileList";
 import { FileListItem } from "./FileList/FileListItem/FileListItem";
 import { NoiseChart } from "./NoiseChart/NoiseChart";
@@ -8,6 +9,7 @@ import { VideoFrameCanvas } from "./player/VideoFrameCanvas";
 import { SampleTimeline } from "./SampleTimeline/SampleTimeline";
 
 export function registerCustomElements() {
+  window.customElements.define("exported-videos", ExportedVideos);
   window.customElements.define("noise-chart", NoiseChart);
   window.customElements.define("sample-timeline", SampleTimeline);
   window.customElements.define("play-button", PlayButton);
