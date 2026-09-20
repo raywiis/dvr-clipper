@@ -43,7 +43,10 @@ export class SampleTimeline extends HTMLElement {
 
   #getBlocks(file: File): SampleTimelineBlock[] {
     assert(this.#appState, "Sample timeline is not configured");
-    const groups = getNoiselessGroupsFromFiles(this.#appState, [file]);
+    const groups = this.#appState.fileNoiseGroups.get(file);
+    if (!groups) {
+      return [];
+    }
     const blocks: SampleTimelineBlock[] = [];
 
     for (const group of groups) {

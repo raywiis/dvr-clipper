@@ -2,6 +2,9 @@ import type { AppState } from "./appState";
 import { assert } from "./assert";
 import type { Sample } from "./decode/mjpeg";
 
+export type Section = Array<{ file: File; samples: Sample[] }>;
+export type Groups = Array<Section>;
+
 export function getNoiselessGroupsFromFiles(appState: AppState, files: File[]) {
   const inputs = files.map((file) => {
     const samples = appState.fileSamples.get(file);
@@ -14,8 +17,6 @@ export function getNoiselessGroupsFromFiles(appState: AppState, files: File[]) {
   const noiseThreshold = 0.5;
   const clearFrameTimeThreshold = 20;
 
-  type Section = Array<{ file: File; samples: Sample[] }>;
-  type Groups = Array<Section>;
   const groups: Groups = [];
   let iteratorState:
     { recording: true; lastClearFrame: number } | { recording: false } = {

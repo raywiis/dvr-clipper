@@ -5,7 +5,6 @@ import { assert } from "../../../assert";
 import type { Sample } from "../../../decode/mjpeg";
 import { encodeMov } from "../../../encode/mov";
 import { formatDuration } from "../../../formatDuration";
-import { getNoiselessGroupsFromFiles } from "../../../getNoiselessGroupsFromFiles";
 import { NoiseChart } from "../../NoiseChart/NoiseChart";
 import styles from "./fileListItem.module.css";
 
@@ -13,7 +12,8 @@ function getNoiselessGroupsFromFile(
   appState: AppState,
   file: File,
 ): Sample[][] {
-  const groups = getNoiselessGroupsFromFiles(appState, [file]);
+  const groups = appState.fileNoiseGroups.get(file);
+  assert(groups, "Missing groups");
   const samples = groups.map((sections) => {
     assert(sections.length === 1, "Multiple sections from a single file");
     return sections.flatMap((section) => section.samples);

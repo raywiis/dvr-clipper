@@ -18,6 +18,7 @@ import type {
   FileWorkerRequest,
 } from "./fileWorker/messages";
 import { assert } from "./assert";
+import { getNoiselessGroupsFromFiles, type Groups } from "./getNoiselessGroupsFromFiles";
 
 const fileWorker = new Worker(
   new URL("./fileWorker/fileProcessingWorker.ts", import.meta.url),
@@ -31,6 +32,7 @@ export class AppState {
   files: File[] = [];
   fileSamples: Map<File, Sample[]> = new Map();
   fileNoise: Map<File, NoisePoint[]> = new Map();
+  fileNoiseGroups: Map<File, Groups> = new Map();
   #pendingFileRequests = new Map<number, File>();
 
   constructor() {
@@ -143,6 +145,8 @@ export class AppState {
           "Invariant. Missing noise after processing complete",
         );
         this.#pendingFileRequests.delete(data.requestId);
+        const fileNoiseGroups = getNoiselessGroupsFromFiles(this, [file]);
+        this.fileNoiseGroups.set(file, fileNoiseGroups);
         this.eventTarget.dispatchEvent(
           new AppFileAnalysisCompleteEvent(samples, noisePoints, file),
         );
