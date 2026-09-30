@@ -9,6 +9,11 @@ import {
   Quality,
   StreamTarget,
 } from "mediabunny";
+import {
+
+  registerMjpegDecoder,
+  registerMjpegEncoder,
+} from '@mediabunny/mjpeg';
 
 export type Section = {
   file: File;
@@ -22,6 +27,8 @@ export async function encodeMovMediabunny(
   sections: Section[],
   fileName: string,
 ) {
+  registerMjpegDecoder();
+  registerMjpegEncoder();
   assert(sections.length > 0, "No sections to encode");
   const firstSection = sections[0]!;
   const firstSample = firstSection.samples[0];
@@ -41,7 +48,7 @@ export async function encodeMovMediabunny(
   // TODO: Double check that all vidya has the correct width/height
   const canvas = new OffscreenCanvas(width, height);
   const videoSource = new CanvasSource(canvas, {
-    codec: "vp9",
+    codec: "mjpeg",
     quality: new Quality("very-low"),
   });
 
