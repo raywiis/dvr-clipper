@@ -27,10 +27,10 @@ __metadata:
   dependencies:
     "@ffmpeg/ffmpeg": "npm:^0.12.15"
     "@ffmpeg/util": "npm:^0.12.2"
-    "@mediabunny/mjpeg": "portal:../../../mediabunny/packages/mjpeg/"
+    "@mediabunny/mjpeg": "portal:../../vendor/mediabunny/packages/mjpeg/"
     "@storybook/html-vite": "npm:^10.4.6"
     "@types/node": "npm:^26.0.1"
-    mediabunny: "portal:../../../mediabunny"
+    mediabunny: "portal:../../vendor/mediabunny"
     mp4box: "npm:^2.3.0"
     prettier: "npm:^3.8.4"
     storybook: "npm:^10.4.6"
@@ -379,9 +379,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mediabunny/mjpeg@portal:../../../mediabunny/packages/mjpeg/::locator=%40dvr-clipper%2Fweb%40workspace%3Apackages%2Fweb":
+"@mediabunny/mjpeg@portal:../../vendor/mediabunny/packages/mjpeg/::locator=%40dvr-clipper%2Fweb%40workspace%3Apackages%2Fweb":
   version: 0.0.0-use.local
-  resolution: "@mediabunny/mjpeg@portal:../../../mediabunny/packages/mjpeg/::locator=%40dvr-clipper%2Fweb%40workspace%3Apackages%2Fweb"
+  resolution: "@mediabunny/mjpeg@portal:../../vendor/mediabunny/packages/mjpeg/::locator=%40dvr-clipper%2Fweb%40workspace%3Apackages%2Fweb"
   dependencies:
     "@jsquash/jpeg": "npm:^1.6.0"
   peerDependencies:
@@ -2057,9 +2057,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mediabunny@portal:../../../mediabunny::locator=%40dvr-clipper%2Fweb%40workspace%3Apackages%2Fweb":
+"mediabunny@portal:../../vendor/mediabunny::locator=%40dvr-clipper%2Fweb%40workspace%3Apackages%2Fweb":
   version: 0.0.0-use.local
-  resolution: "mediabunny@portal:../../../mediabunny::locator=%40dvr-clipper%2Fweb%40workspace%3Apackages%2Fweb"
+  resolution: "mediabunny@portal:../../vendor/mediabunny::locator=%40dvr-clipper%2Fweb%40workspace%3Apackages%2Fweb"
   dependencies:
     "@types/dom-mediacapture-transform": "npm:^0.1.11"
     "@types/dom-webcodecs": "npm:0.1.13"

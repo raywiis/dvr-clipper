@@ -15,8 +15,8 @@
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
-    "@mediabunny/mjpeg": "portal:../../../mediabunny/packages/mjpeg/",
-    "mediabunny": "portal:../../../mediabunny",
+    "@mediabunny/mjpeg": "portal:../../vendor/mediabunny/packages/mjpeg/",
+    "mediabunny": "portal:../../vendor/mediabunny",
     "mp4box": "^2.3.0"
   },
   "devDependencies": {

@@ -24,6 +24,13 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --immutable
+      
+      - name: Submodule init
+        run: yarn run init-submodules
+
+      - name: Mediabunny build
+        working-directory: ./vendor/mediabunny
+        run: npm install && npm run build
 
       - name: Typecheck
         run: yarn typecheck
