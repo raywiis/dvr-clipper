@@ -22,9 +22,6 @@ jobs:
           node-version-file: .nvmrc
           cache: yarn
 
-      - name: Install dependencies
-        run: yarn install --immutable
-      
       - name: Submodule init
         run: yarn run init-submodules
 
@@ -32,6 +29,9 @@ jobs:
         working-directory: ./vendor/mediabunny
         run: npm install && npm run build
 
+      - name: Install dependencies
+        run: yarn install --immutable
+      
       - name: Typecheck
         run: yarn typecheck
 
