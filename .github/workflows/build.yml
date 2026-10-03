@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          submodules: recursive
 
       - name: Enable Corepack
         run: corepack enable
@@ -21,9 +23,6 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: yarn
-
-      - name: Submodule init
-        run: git submodule init && git submodule update
 
       - name: Mediabunny build
         working-directory: ./vendor/mediabunny
