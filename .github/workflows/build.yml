@@ -23,7 +23,7 @@ jobs:
           cache: yarn
 
       - name: Submodule init
-        run: yarn run init-submodules
+        run: git sumbodule init && git submodule update
 
       - name: Mediabunny build
         working-directory: ./vendor/mediabunny
