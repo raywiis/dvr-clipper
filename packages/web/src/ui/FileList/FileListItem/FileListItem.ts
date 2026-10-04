@@ -3,7 +3,7 @@ import type { AppState } from "../../../appState";
 import { AppUISelectFileEvent } from "../../../appStateEvents";
 import { assert } from "../../../assert";
 import type { Sample } from "../../../decode/mjpeg";
-import { encodeMov } from "../../../encode/mov";
+import { encodeMov, encodeMovMediabunny } from "../../../encode/mov";
 import { formatDuration } from "../../../formatDuration";
 import { NoiseChart } from "../../NoiseChart/NoiseChart";
 import styles from "./fileListItem.module.css";
@@ -105,9 +105,7 @@ export class FileListItem extends HTMLElement {
       if (!samples) {
         return;
       }
-      encodeMov([{ file: this.#file, samples }]).then((file) => {
-        file.save("resampled.mov");
-      });
+      encodeMovMediabunny([{ file: this.#file, samples }], 'resampled.mov').catch(console.error);
     });
 
     const getClipsWithoutNoiseBtn = document.createElement("button");
